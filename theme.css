@@ -110,14 +110,17 @@ section { margin-top:var(--s7); }
   border:1px solid var(--line); border-radius:var(--r-pill); padding:.22em .6em; }
 .sec-note { color:var(--muted); font-size:var(--fs-label); margin:0 0 var(--s4); max-width:62ch; }
 
-/* Status chip — one pill component, no ornament. Status is conveyed by text
-   and ground color; the badge is pinned to the right of its header everywhere. */
-.chip { display:inline-block; font-size:var(--fs-label); font-weight:600; letter-spacing:.03em;
-  text-transform:uppercase; padding:.28em .62em; border-radius:var(--r-pill); line-height:1.3;
-  border:1px solid var(--line-strong); color:var(--muted); white-space:nowrap; }
-.chip.done { background:var(--ok-bg); color:var(--ok); border-color:transparent; }
-.chip.in-progress { background:var(--warn-bg); color:var(--warn); border-color:transparent; }
-.chip.upcoming { /* neutral outline — inherits the base pill */ }
+/* Status checkbox — monochrome, sits at the LEFT of each row like a checklist.
+   done = checked, in-progress = indeterminate (dash), upcoming = empty box.
+   No color coding; state is read from the mark, not from hue. */
+.cbx { display:inline-flex; flex:none; }
+.cbx-svg { width:1.2em; height:1.2em; }
+.cbx-svg rect { fill:none; stroke:var(--line-strong); stroke-width:1.6; }
+.cbx-in-progress .cbx-svg rect { stroke:var(--ink); }
+.cbx-done .cbx-svg rect { fill:var(--ink); stroke:var(--ink); }
+.cbx-svg .cbx-mark { fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.cbx-done .cbx-svg .cbx-mark { stroke:var(--panel); }
+.cbx-in-progress .cbx-svg .cbx-mark { stroke:var(--ink); }
 
 /* ============================================================================
    PROJECT STATUS — active phase cards + recessed "Coming up" list
@@ -126,16 +129,16 @@ section { margin-top:var(--s7); }
 .phase { border:1px solid var(--line); border-radius:var(--r-lg); background:var(--panel);
   padding:var(--s5); box-shadow:var(--shadow); }
 .phase-head { display:flex; align-items:flex-start; gap:var(--s3); flex-wrap:nowrap; margin-bottom:var(--s2); }
+.phase-head .cbx { margin-top:.15em; }
 .phase-head h3 { flex:1; min-width:0; font-size:var(--fs-lead); margin:0; }
-.phase-head .chip { flex:none; margin-top:.1em; }
 .phase-prog { font-size:var(--fs-micro); color:var(--faint); margin:0 0 var(--s4); font-variant-numeric:tabular-nums; }
 .items { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
 .item { display:flex; align-items:flex-start; gap:var(--s3); padding:var(--s3) 0;
   border-top:1px solid var(--line); }
 .item:first-child { border-top:0; }
+.item .cbx { margin-top:.05em; }
 .item .label { flex:1; font-size:var(--fs-body); color:var(--ink); }
 .item.done .label { color:var(--muted); }
-.item .chip { margin-top:.1em; }
 
 /* Coming up — future phases, recessed. Chevron (left) + right-pinned badge. */
 .coming-h { font-size:var(--fs-label); font-weight:600; text-transform:uppercase; letter-spacing:.06em;
@@ -154,10 +157,10 @@ details.phase-up summary .chev { order:0; color:var(--faint); margin-top:.15em;
   transition:transform .15s ease; }
 details.phase-up[open] summary .chev { transform:rotate(90deg); }
 @media (prefers-reduced-motion: reduce){ details.phase-up summary .chev { transition:none; } }
-details.phase-up summary h3 { order:1; flex:1; min-width:0; font-size:var(--fs-lead);
+details.phase-up summary .cbx { order:1; margin-top:.1em; }
+details.phase-up summary h3 { order:2; flex:1; min-width:0; font-size:var(--fs-lead);
   margin:0; font-weight:600; color:var(--muted); }
-details.phase-up summary .phase-prog { order:2; margin:0; align-self:center; }
-details.phase-up summary .chip { order:3; margin-top:.1em; }
+details.phase-up summary .phase-prog { order:3; margin:0; align-self:center; }
 details.phase-up .items { margin-top:var(--s3); }
 
 /* ============================================================================
@@ -186,8 +189,8 @@ details.phase-up .items { margin-top:var(--s3); }
   text-decoration:none; border:1px solid var(--accent); background:var(--accent); color:var(--bg);
   border-radius:var(--r-sm); padding:.55rem 1.1rem; }
 .doc-link:hover { text-decoration:none; opacity:.9; }
-.doc-pending { display:inline-block; font-size:var(--fs-micro); font-weight:600; color:var(--warn);
-  background:var(--warn-bg); border-radius:var(--r-sm); padding:.5rem .9rem; }
+.doc-pending { display:inline-block; font-size:var(--fs-micro); font-weight:600; color:var(--muted);
+  background:var(--subtle); border:1px solid var(--line); border-radius:var(--r-sm); padding:.5rem .9rem; }
 
 /* ============================================================================
    FOOTER / MISC

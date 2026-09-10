@@ -55,13 +55,50 @@
     });
     return s;
   }
-  function chip(state) { var s = normState(state); return el('span', 'chip ' + s, STATES[s]); }
+
+  // Monochrome status checkbox: done = checked, in-progress = indeterminate
+  // (dash), upcoming = empty. Reads as a plain checklist; no color coding.
+  function checkbox(state) {
+    var s = normState(state);
+    var box = el('span', 'cbx cbx-' + s);
+    box.setAttribute('role', 'img');
+    box.setAttribute('aria-label', STATES[s]);
+    var svg = document.createElementNS(SVGNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 20 20');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('class', 'cbx-svg');
+    var rect = document.createElementNS(SVGNS, 'rect');
+    rect.setAttribute('x', '2.5'); rect.setAttribute('y', '2.5');
+    rect.setAttribute('width', '15'); rect.setAttribute('height', '15'); rect.setAttribute('rx', '4');
+    svg.appendChild(rect);
+    var mark = null;
+    if (s === 'done') mark = 'M5.5 10.5l3 3 6-6.5';
+    else if (s === 'in-progress') mark = 'M6 10h8';
+    if (mark) {
+      var p = document.createElementNS(SVGNS, 'path');
+      p.setAttribute('d', mark); p.setAttribute('class', 'cbx-mark');
+      svg.appendChild(p);
+    }
+    box.appendChild(svg);
+    return box;
+  }
+
+  // A phase's rollup state from its items: all done = done; some done or any in
+  // progress = in-progress (indeterminate); otherwise upcoming.
+  function phaseState(p) {
+    var items = itemsOf(p);
+    if (!items.length) return normState(p.status);
+    var done = items.filter(function (i) { return normState(i.status) === 'done'; }).length;
+    if (done === items.length) return 'done';
+    if (done > 0 || items.some(function (i) { return normState(i.status) === 'in-progress'; })) return 'in-progress';
+    return 'upcoming';
+  }
   function itemList(p) {
     var ul = el('ul', 'items');
     itemsOf(p).forEach(function (it) {
       var li = el('li', 'item ' + normState(it.status));
+      li.appendChild(checkbox(it.status));
       li.appendChild(el('span', 'label', it.label || ''));
-      li.appendChild(chip(it.status));
       ul.appendChild(li);
     });
     return ul;
@@ -122,8 +159,8 @@
         var card = el('div', 'phase');
         if (p.id) card.id = p.id;
         var h = el('div', 'phase-head');
+        h.appendChild(checkbox(phaseState(p)));
         h.appendChild(el('h3', null, p.title || ''));
-        h.appendChild(chip(p.status));
         card.appendChild(h);
         card.appendChild(el('p', 'phase-prog', doneIn(p) + ' of ' + itemsOf(p).length + ' done'));
         card.appendChild(itemList(p));
@@ -139,8 +176,8 @@
           if (p.id) d.id = p.id;
           var sum = document.createElement('summary');
           sum.appendChild(icon('chevron', 'chev'));
+          sum.appendChild(checkbox(phaseState(p)));
           sum.appendChild(el('h3', null, p.title || ''));
-          sum.appendChild(chip(p.status));
           sum.appendChild(el('span', 'phase-prog', doneIn(p) + ' of ' + itemsOf(p).length + ' done'));
           d.appendChild(sum);
           d.appendChild(itemList(p));
