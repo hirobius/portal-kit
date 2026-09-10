@@ -133,7 +133,7 @@
 
       if (upcomingPhases.length) {
         statusSec.appendChild(el('h3', 'coming-h', 'Coming up'));
-        var up = el('div', 'upcoming');
+        var up = el('div', 'coming-list');
         upcomingPhases.forEach(function (p) {
           var d = el('details', 'phase-up');
           if (p.id) d.id = p.id;
