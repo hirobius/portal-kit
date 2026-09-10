@@ -98,7 +98,10 @@
     itemsOf(p).forEach(function (it) {
       var li = el('li', 'item ' + normState(it.status));
       li.appendChild(checkbox(it.status));
-      li.appendChild(el('span', 'label', it.label || ''));
+      var txt = el('div', 'item-text');
+      txt.appendChild(el('span', 'label', it.label || ''));
+      if (it.desc) txt.appendChild(el('p', 'desc', it.desc));
+      li.appendChild(txt);
       ul.appendChild(li);
     });
     return ul;
@@ -126,7 +129,7 @@
     var head = el('header', 'head');
     head.appendChild(el('h1', null, data.client || 'Project Portal'));
     var meta = el('div', 'head-meta');
-    meta.appendChild(el('span', 'pill', 'Private'));
+    meta.appendChild(el('span', 'tag', 'Private'));
     if (data.lastUpdated) meta.appendChild(el('span', 'meta', 'Last updated ' + fmtDate(data.lastUpdated)));
     head.appendChild(meta);
     head.appendChild(el('p', 'subtitle', data.subtitle || 'Where your project stands, updated as we go by Hirobius.'));
