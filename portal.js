@@ -34,6 +34,27 @@
     if (text != null) n.textContent = text;
     return n;
   }
+
+  // Inline Lucide icon subset (no runtime dependency). Sized to text via .icon.
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  var ICONS = {
+    chevron:  ['m9 18 6-6-6-6'],
+    file:     ['M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z', 'M14 2v4a2 2 0 0 0 2 2h4', 'M16 13H8', 'M16 17H8', 'M10 9H8'],
+    external: ['M7 7h10v10', 'M7 17 17 7'],
+    download: ['M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4', 'm7 10 5 5 5-5', 'M12 15V3']
+  };
+  function icon(name, cls) {
+    var s = document.createElementNS(SVGNS, 'svg');
+    s.setAttribute('viewBox', '0 0 24 24');
+    s.setAttribute('aria-hidden', 'true');
+    s.setAttribute('class', 'icon' + (cls ? ' ' + cls : ''));
+    (ICONS[name] || []).forEach(function (d) {
+      var p = document.createElementNS(SVGNS, 'path');
+      p.setAttribute('d', d);
+      s.appendChild(p);
+    });
+    return s;
+  }
   function chip(state) { var s = normState(state); return el('span', 'chip ' + s, STATES[s]); }
   function itemList(p) {
     var ul = el('ul', 'items');
@@ -117,6 +138,7 @@
           var d = el('details', 'phase-up');
           if (p.id) d.id = p.id;
           var sum = document.createElement('summary');
+          sum.appendChild(icon('chevron', 'chev'));
           sum.appendChild(el('h3', null, p.title || ''));
           sum.appendChild(chip(p.status));
           sum.appendChild(el('span', 'phase-prog', doneIn(p) + ' of ' + itemsOf(p).length + ' done'));
@@ -163,16 +185,22 @@
       docs.forEach(function (d) {
         var card = el('div', 'doc');
         var txt = el('div', 'txt');
-        txt.appendChild(el('h3', null, d.title || 'Document'));
+        var dh = el('h3');
+        dh.appendChild(icon('file', 'doc-ico'));
+        dh.appendChild(document.createTextNode(d.title || 'Document'));
+        txt.appendChild(dh);
         if (d.description) txt.appendChild(el('p', null, d.description));
         card.appendChild(txt);
         var action = el('div', 'doc-action');
         if (d.file && d.file !== PLACEHOLDER) {
-          var a = el('a', 'doc-link', 'Open');
+          var isUrl = /^https?:/i.test(d.file);
+          var a = el('a', 'doc-link');
           a.href = d.file;
           a.setAttribute('target', '_blank');
           a.setAttribute('rel', 'noopener');
-          if (!/^https?:/i.test(d.file)) a.setAttribute('download', '');
+          if (!isUrl) a.setAttribute('download', '');
+          a.appendChild(document.createTextNode('Open'));
+          a.appendChild(icon(isUrl ? 'external' : 'download'));
           action.appendChild(a);
         } else {
           action.appendChild(el('span', 'doc-pending', 'Awaiting file'));
