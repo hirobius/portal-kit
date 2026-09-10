@@ -1,0 +1,132 @@
+/* Hirobius Portal Kit — shared theme for client status portals.
+   Single source of truth: edit this file, redeploy portal-kit, and every client
+   page that links it picks up the new styling on next load. Matches the Lilac
+   design language (Satoshi, neutral palette, pill states, elevated white cards).
+
+   Client pages link this with:
+     <link rel="stylesheet" href="https://<portal-kit-host>/theme.css">
+   and render their content with portal.js. */
+
+/* Satoshi is self-hosted from /fonts on the portal-kit host. Until the .woff2
+   files are added there, --sans falls back to system-ui with no broken layout. */
+@font-face {
+  font-family:'Satoshi'; font-style:normal; font-weight:300 900; font-display:swap;
+  src:url('/fonts/Satoshi-Variable.woff2') format('woff2');
+}
+@font-face {
+  font-family:'Satoshi'; font-style:italic; font-weight:300 900; font-display:swap;
+  src:url('/fonts/Satoshi-VariableItalic.woff2') format('woff2');
+}
+
+:root {
+  --bg:#f3f3f4; --panel:#ffffff; --subtle:#f7f7f8; --ink:#141414; --muted:#555; --faint:#6e6e6e;
+  --line:#e4e4e4; --line-strong:#cfcfcf; --code-bg:#f0f0f0; --accent:#141414;
+  --ok:#1f6b3a; --ok-bg:#e9f4ec; --warn:#7a4e00; --warn-bg:#fbf0d8;
+  --shadow:0 1px 2px rgba(20,20,20,.04), 0 10px 26px -14px rgba(20,20,20,.14);
+  --shadow-hover:0 2px 5px rgba(20,20,20,.06), 0 16px 34px -14px rgba(20,20,20,.2);
+  --s1:.25rem; --s2:.5rem; --s3:.75rem; --s4:1rem; --s5:1.5rem; --s6:2rem; --s7:2.75rem;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: 'Satoshi', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg:#0e0e0e; --panel:#161616; --subtle:#121212; --ink:#ededed; --muted:#a8a8a8; --faint:#8a8a8a;
+    --line:#2a2a2a; --line-strong:#3a3a3a; --code-bg:#1e1e1e; --accent:#ededed;
+    --ok:#7bd39a; --ok-bg:#16281c; --warn:#e8c07a; --warn-bg:#2c2413;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 12px 30px -16px rgba(0,0,0,.6);
+    --shadow-hover:0 2px 6px rgba(0,0,0,.4), 0 18px 38px -16px rgba(0,0,0,.7); }
+}
+* { box-sizing:border-box; }
+html { -webkit-text-size-adjust:100%; scroll-behavior:smooth; }
+@media (prefers-reduced-motion: reduce){ html { scroll-behavior:auto; } }
+body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); line-height:1.55; font-size:.92rem; }
+main { max-width:820px; margin:0 auto; padding:var(--s6) clamp(1rem,4vw,2rem) var(--s7); }
+a { color:var(--ink); }
+h1,h2,h3 { letter-spacing:-.01em; }
+
+/* Header */
+.head { display:flex; flex-direction:column; gap:var(--s2);
+  padding-bottom:var(--s4); border-bottom:1px solid var(--line-strong); }
+.head h1 { font-size:2.1rem; margin:0; letter-spacing:-.02em; line-height:1.1; font-variation-settings:"wght" 720; }
+.head-meta { display:flex; flex-wrap:wrap; align-items:center; gap:var(--s3); margin-top:var(--s1); }
+.head .subtitle { color:var(--muted); font-size:.92rem; margin:0; }
+.head .meta { color:var(--faint); font-size:.8rem; }
+.pill { display:inline-block; font-size:.8rem; font-weight:600; letter-spacing:.03em; text-transform:uppercase;
+  padding:.28em .62em; border-radius:999px; border:1px solid var(--line-strong); color:var(--muted);
+  white-space:nowrap; line-height:1.3; }
+
+.progress { font-size:.8rem; color:var(--faint); margin:var(--s4) 0 0; font-variant-numeric:tabular-nums; }
+
+/* Sections */
+section { margin-top:var(--s7); }
+.sec-head { display:flex; align-items:baseline; gap:var(--s3); flex-wrap:wrap; margin-bottom:var(--s2); }
+.sec-head h2 { font-size:1.35rem; margin:0; letter-spacing:-.01em; }
+.sec-head .count { font-size:.8rem; font-weight:600; color:var(--muted); background:var(--panel);
+  border:1px solid var(--line); border-radius:999px; padding:.22em .6em; }
+.sec-note { color:var(--muted); font-size:.8rem; margin:0 0 var(--s4); max-width:62ch; }
+
+/* Status chip — one pill component, no decorative dots */
+.chip { display:inline-block; font-size:.8rem; font-weight:600; letter-spacing:.03em;
+  text-transform:uppercase; padding:.28em .62em; border-radius:999px; line-height:1.3;
+  border:1px solid var(--line-strong); color:var(--muted); white-space:nowrap; }
+.chip.done { background:var(--ok-bg); color:var(--ok); border-color:transparent; }
+.chip.in-progress { background:var(--warn-bg); color:var(--warn); border-color:transparent; }
+.chip.upcoming { /* neutral outline — inherits the base pill */ }
+
+/* Phases */
+.phases { display:flex; flex-direction:column; gap:var(--s5); }
+.phase { border:1px solid var(--line); border-radius:14px; background:var(--panel); padding:var(--s5);
+  box-shadow:var(--shadow); }
+.phase-head { display:flex; align-items:center; gap:var(--s3); flex-wrap:wrap; margin-bottom:var(--s2); }
+.phase-head h3 { font-size:1.05rem; margin:0; }
+.phase-prog { font-size:.75rem; color:var(--faint); margin:0 0 var(--s4); font-variant-numeric:tabular-nums; }
+.items { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+.item { display:flex; align-items:flex-start; gap:var(--s3); padding:var(--s3) 0;
+  border-top:1px solid var(--line); }
+.item:first-child { border-top:0; }
+.item .label { flex:1; font-size:.92rem; color:var(--ink); }
+.item.done .label { color:var(--muted); }
+.item .chip { margin-top:.1em; }
+
+/* Coming up — future phases, recessed so attention stays on what's active now */
+.coming-h { font-size:.8rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--faint); margin:var(--s6) 0 var(--s3); }
+.upcoming { display:flex; flex-direction:column; gap:var(--s3); }
+details.phase-up { border:1px solid var(--line); border-radius:12px; background:var(--subtle);
+  padding:var(--s3) var(--s4); }
+details.phase-up > summary { cursor:pointer; display:flex; align-items:center; gap:var(--s3);
+  flex-wrap:wrap; list-style:none; }
+details.phase-up > summary::-webkit-details-marker { display:none; }
+details.phase-up > summary::after { content:"+"; margin-left:auto; color:var(--faint);
+  font-family:var(--mono); font-size:1rem; line-height:1; }
+details.phase-up[open] > summary::after { content:"\\2212"; }
+details.phase-up summary h3 { font-size:.98rem; margin:0; font-weight:600; color:var(--muted); }
+details.phase-up summary .phase-prog { margin:0; }
+details.phase-up[open] { background:var(--panel); }
+details.phase-up .items { margin-top:var(--s3); }
+
+/* Updates feed */
+.feed { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:var(--s4); }
+.entry { border:1px solid var(--line); border-radius:12px; background:var(--panel); padding:var(--s4) var(--s5);
+  box-shadow:var(--shadow); }
+.entry time { display:block; font-size:.75rem; font-weight:600; letter-spacing:.02em; color:var(--faint);
+  margin-bottom:var(--s2); font-variant-numeric:tabular-nums; }
+.entry p { margin:0; font-size:.92rem; color:var(--ink); }
+
+/* Documents */
+.docs { display:flex; flex-direction:column; gap:var(--s4); }
+.doc { border:1px solid var(--line); border-radius:12px; background:var(--panel); padding:var(--s5);
+  box-shadow:var(--shadow); display:flex; flex-wrap:wrap; gap:var(--s3) var(--s4); align-items:flex-start;
+  justify-content:space-between; }
+.doc .txt { flex:1 1 20rem; }
+.doc h3 { font-size:1.05rem; margin:0 0 var(--s1); }
+.doc p { margin:0; font-size:.88rem; color:var(--muted); }
+.doc-action { flex:0 0 auto; }
+.doc-link { display:inline-block; font-size:.88rem; font-weight:600; text-decoration:none;
+  border:1px solid var(--accent); background:var(--accent); color:var(--bg); border-radius:8px; padding:.55rem 1.1rem; }
+.doc-link:focus-visible { outline:2px solid var(--ink); outline-offset:2px; }
+.doc-pending { display:inline-block; font-size:.78rem; font-weight:600; color:var(--warn);
+  background:var(--warn-bg); border-radius:8px; padding:.5rem .9rem; }
+
+footer { margin-top:var(--s7); padding-top:var(--s4); border-top:1px solid var(--line);
+  color:var(--faint); font-size:.78rem; }
+.empty { color:var(--faint); font-size:.88rem; font-style:italic; }

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Client Name — Project Portal</title>
+<!-- Link the shared theme. Replace <PORTAL_KIT_HOST> with the deployed portal-kit
+     origin, e.g. https://portal-kit.vercel.app -->
+<link rel="stylesheet" href="https://<PORTAL_KIT_HOST>/theme.css" />
+</head>
+<body>
+  <!-- The ONLY thing a client page owns is this data block. Structure and styling
+       come from the shared kit, so a theme.css edit sweeps every client page. -->
+  <script type="application/json" id="portal-data">
+  {
+    "client": "Client Name",
+    "lastUpdated": "2026-01-01",
+    "phases": [
+      {
+        "id": "phase-0",
+        "title": "Phase 0 — Title",
+        "status": "in-progress",
+        "items": [
+          { "label": "A task", "status": "done" },
+          { "label": "Another task", "status": "in-progress" },
+          { "label": "A future task", "status": "upcoming" }
+        ]
+      }
+    ],
+    "updates": [
+      { "date": "2026-01-01", "note": "First update." }
+    ],
+    "documents": [
+      { "title": "Proposal", "description": "Plan and pricing.", "file": "REPLACE_WITH_PROPOSAL_FILE_PATH" }
+    ]
+  }
+  </script>
+  <script src="https://<PORTAL_KIT_HOST>/portal.js" defer></script>
+</body>
+</html>

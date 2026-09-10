@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Hirobius Portal Kit — Demo</title>
+<link rel="stylesheet" href="/theme.css" />
+</head>
+<body>
+  <!-- This demo renders sample data through the shared theme + renderer, exactly
+       the way a real client page does. It's here so you can see the kit live and
+       confirm a theme.css edit sweeps through. Real client pages live in their
+       own repos and link this host's /theme.css and /portal.js. -->
+  <script type="application/json" id="portal-data">
+  {
+    "client": "Demo Client",
+    "lastUpdated": "2026-09-10",
+    "phases": [
+      {
+        "id": "phase-0",
+        "title": "Phase 0 — Example (active)",
+        "status": "in-progress",
+        "items": [
+          { "label": "A finished step", "status": "done" },
+          { "label": "A step in progress", "status": "in-progress" },
+          { "label": "A step not started", "status": "upcoming" }
+        ]
+      },
+      {
+        "id": "phase-1",
+        "title": "Phase 1 — Example (upcoming)",
+        "status": "upcoming",
+        "items": [
+          { "label": "Future step one", "status": "upcoming" },
+          { "label": "Future step two", "status": "upcoming" }
+        ]
+      }
+    ],
+    "updates": [
+      { "date": "2026-09-10", "note": "This is a sample status update rendered by portal.js." }
+    ],
+    "documents": [
+      { "title": "Example Document", "description": "Description goes here.", "file": "REPLACE_WITH_PROPOSAL_FILE_PATH" }
+    ]
+  }
+  </script>
+  <script src="/portal.js" defer></script>
+</body>
+</html>
