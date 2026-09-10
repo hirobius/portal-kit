@@ -76,8 +76,9 @@ section { margin-top:var(--s7); }
 .phases { display:flex; flex-direction:column; gap:var(--s5); }
 .phase { border:1px solid var(--line); border-radius:14px; background:var(--panel); padding:var(--s5);
   box-shadow:var(--shadow); }
-.phase-head { display:flex; align-items:center; gap:var(--s3); flex-wrap:wrap; margin-bottom:var(--s2); }
-.phase-head h3 { font-size:1.05rem; margin:0; }
+.phase-head { display:flex; align-items:flex-start; gap:var(--s3); flex-wrap:nowrap; margin-bottom:var(--s2); }
+.phase-head h3 { flex:1; min-width:0; font-size:1.05rem; margin:0; }
+.phase-head .chip { flex:none; margin-top:.1em; }
 .phase-prog { font-size:.75rem; color:var(--faint); margin:0 0 var(--s4); font-variant-numeric:tabular-nums; }
 .items { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
 .item { display:flex; align-items:flex-start; gap:var(--s3); padding:var(--s3) 0;
@@ -93,14 +94,15 @@ section { margin-top:var(--s7); }
 .upcoming { display:flex; flex-direction:column; gap:var(--s3); }
 details.phase-up { border:1px solid var(--line); border-radius:12px; background:var(--subtle);
   padding:var(--s3) var(--s4); }
-details.phase-up > summary { cursor:pointer; display:flex; align-items:center; gap:var(--s3);
-  flex-wrap:wrap; list-style:none; }
+details.phase-up > summary { cursor:pointer; display:flex; align-items:flex-start; gap:var(--s3);
+  list-style:none; }
 details.phase-up > summary::-webkit-details-marker { display:none; }
-details.phase-up > summary::after { content:"+"; margin-left:auto; color:var(--faint);
-  font-family:var(--mono); font-size:1rem; line-height:1; }
-details.phase-up[open] > summary::after { content:"\2212"; }
-details.phase-up summary h3 { font-size:.98rem; margin:0; font-weight:600; color:var(--muted); }
-details.phase-up summary .phase-prog { margin:0; }
+details.phase-up > summary::before { content:"+"; order:0; color:var(--faint);
+  font-family:var(--mono); font-size:1rem; line-height:1.5; }
+details.phase-up[open] > summary::before { content:"\2212"; }
+details.phase-up summary h3 { order:1; flex:1; min-width:0; font-size:.98rem; margin:0; font-weight:600; color:var(--muted); }
+details.phase-up summary .phase-prog { order:2; margin:0; align-self:center; }
+details.phase-up summary .chip { order:3; margin-top:.1em; }
 details.phase-up[open] { background:var(--panel); }
 details.phase-up .items { margin-top:var(--s3); }
 
