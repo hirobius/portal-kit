@@ -98,7 +98,7 @@ details.phase-up > summary { cursor:pointer; display:flex; align-items:center; g
 details.phase-up > summary::-webkit-details-marker { display:none; }
 details.phase-up > summary::after { content:"+"; margin-left:auto; color:var(--faint);
   font-family:var(--mono); font-size:1rem; line-height:1; }
-details.phase-up[open] > summary::after { content:"\\2212"; }
+details.phase-up[open] > summary::after { content:"\2212"; }
 details.phase-up summary h3 { font-size:.98rem; margin:0; font-weight:600; color:var(--muted); }
 details.phase-up summary .phase-prog { margin:0; }
 details.phase-up[open] { background:var(--panel); }

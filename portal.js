@@ -23,7 +23,7 @@
       itemsOf(p).every(function (i) { return normState(i.status) === 'upcoming'; });
   }
   function fmtDate(iso) {
-    var m = /^(\\d{4})-(\\d{2})-(\\d{2})$/.exec(iso || '');
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
     if (!m) return iso || '';
     return new Date(+m[1], +m[2] - 1, +m[3])
       .toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
