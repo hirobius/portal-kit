@@ -25,7 +25,8 @@
     sun:      ['M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z', 'M12 1v2', 'M12 21v2', 'M4.2 4.2l1.4 1.4', 'M18.4 18.4l1.4 1.4', 'M1 12h2', 'M21 12h2', 'M4.2 19.8l1.4-1.4', 'M18.4 5.6l1.4-1.4'],
     moon:     ['M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z'],
     monitor:  ['M20 3H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1Z', 'M8 21h8', 'M12 17v4'],
-    download: ['M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4', 'M7 10l5 5 5-5', 'M12 15V3']
+    download: ['M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4', 'M7 10l5 5 5-5', 'M12 15V3'],
+    printer:  ['M6 9V2h12v7', 'M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2', 'M6 14h12v8H6z']
   };
 
   function el(tag, cls, text) {
@@ -349,11 +350,11 @@
         var actions = el('div', 'doc-actions');
         var read = el('button', 'doc-link'); read.type = 'button'; read.textContent = 'Read';
         read.addEventListener('click', function () { openReader(title, dc.bodyId); });
-        var dl = el('button', 'doc-link doc-link--ghost'); dl.type = 'button';
-        dl.appendChild(icon('download')); dl.appendChild(el('span', null, 'Download'));
-        dl.setAttribute('aria-label', 'Download ' + title + ' as a PDF');
-        dl.addEventListener('click', function () { printDoc(title, dc.bodyId); });
-        actions.appendChild(read); actions.appendChild(dl);
+        var pr = el('button', 'doc-link doc-link--ghost'); pr.type = 'button';
+        pr.appendChild(icon('printer')); pr.appendChild(el('span', null, 'Print'));
+        pr.setAttribute('aria-label', 'Print or save ' + title + ' as a PDF');
+        pr.addEventListener('click', function () { printDoc(title, dc.bodyId); });
+        actions.appendChild(read); actions.appendChild(pr);
         card.appendChild(actions);
         dwrap.appendChild(card);
       });
