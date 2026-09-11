@@ -124,9 +124,26 @@
     while (i < lines.length) {
       var line = lines[i];
       if (/^\s*$/.test(line)) { i++; continue; }
+      // Collapsible section: "::: Title" (closed) or ":::+ Title" (open) … "::: "
+      var dm = /^:::(\+)?\s+(.+?)\s*$/.exec(line);
+      if (dm) {
+        i++; var inner = [];
+        while (i < lines.length && !/^:::\s*$/.test(lines[i])) { inner.push(lines[i]); i++; }
+        if (i < lines.length) i++; // consume closing :::
+        out.push('<details class="md-acc"' + (dm[1] ? ' open' : '') + '><summary>' + inline(dm[2]) +
+          '</summary><div class="md-acc-body">' + mdToHtml(inner.join('\n')) + '</div></details>');
+        continue;
+      }
       var h = /^(#{1,6})\s+(.*)$/.exec(line);
       if (h) { var lv = h[1].length; out.push('<h' + lv + '>' + inline(h[2]) + '</h' + lv + '>'); i++; continue; }
       if (/^---+\s*$/.test(line)) { out.push('<hr>'); i++; continue; }
+      // Callout: consecutive lines starting with ">"
+      if (/^\s*>\s?/.test(line)) {
+        var bq = [];
+        while (i < lines.length && /^\s*>\s?/.test(lines[i])) { bq.push(lines[i].replace(/^\s*>\s?/, '')); i++; }
+        out.push('<blockquote class="callout">' + mdToHtml(bq.join('\n')) + '</blockquote>');
+        continue;
+      }
       if (line.indexOf('|') > -1 && i + 1 < lines.length && isTableSep(lines[i + 1])) {
         var head = cells(line); i += 2; var rows = [];
         while (i < lines.length && lines[i].indexOf('|') > -1 && !/^\s*$/.test(lines[i])) { rows.push(cells(lines[i])); i++; }
@@ -146,7 +163,7 @@
         out.push(ol + '</ol>'); continue;
       }
       var para = [line]; i++;
-      while (i < lines.length && !/^\s*$/.test(lines[i]) && !/^(#{1,6}\s|[-*]\s|\d+\.\s|---+\s*$)/.test(lines[i]) &&
+      while (i < lines.length && !/^\s*$/.test(lines[i]) && !/^(#{1,6}\s|[-*]\s|\d+\.\s|:::|\s*>\s?|---+\s*$)/.test(lines[i]) &&
              !(lines[i].indexOf('|') > -1 && i + 1 < lines.length && isTableSep(lines[i + 1]))) { para.push(lines[i]); i++; }
       out.push('<p>' + inline(para.join(' ')) + '</p>');
     }
@@ -198,10 +215,11 @@
     var btn = el('button', 'theme-toggle'); btn.type = 'button';
     function paint() {
       var t = readTheme();
+      var lbl = t === 'system' ? 'System' : (t === 'light' ? 'Light' : 'Dark');
       btn.textContent = '';
       btn.appendChild(icon(t === 'light' ? 'sun' : (t === 'dark' ? 'moon' : 'monitor')));
-      btn.appendChild(el('span', null, 'Theme: ' + (t === 'system' ? 'System' : (t === 'light' ? 'Light' : 'Dark'))));
-      btn.setAttribute('aria-label', 'Theme: ' + t + '. Tap to change.');
+      btn.setAttribute('aria-label', 'Theme: ' + lbl + '. Tap to change.');
+      btn.setAttribute('title', 'Theme: ' + lbl);
     }
     btn.addEventListener('click', function () {
       var next = THEMES[(THEMES.indexOf(readTheme()) + 1) % THEMES.length];

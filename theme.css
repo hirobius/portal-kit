@@ -286,11 +286,32 @@ details.acc .acc-body { margin-top:var(--s3); }
 .md th { font-weight:700; color:var(--muted); border-bottom:1px solid var(--line-strong); }
 .md thead { background:var(--subtle); }
 
+/* In-document collapsible section (::: Title … :::) — folds reference-heavy
+   content so long docs stay scannable. */
+.md .md-acc { border:1px solid var(--line); border-radius:var(--r-sm); background:var(--subtle);
+  margin:1.1em 0; padding:0 var(--s4); }
+.md .md-acc > summary { cursor:pointer; list-style:none; padding:var(--s3) 0; font-weight:700;
+  display:flex; align-items:center; gap:.55em; }
+.md .md-acc > summary::-webkit-details-marker { display:none; }
+.md .md-acc > summary::before { content:""; flex:none; width:.5em; height:.5em;
+  border-right:2px solid var(--faint); border-bottom:2px solid var(--faint);
+  transform:rotate(-45deg); transition:transform .15s ease; }
+.md .md-acc[open] > summary::before { transform:rotate(45deg); }
+@media (prefers-reduced-motion: reduce){ .md .md-acc > summary::before { transition:none; } }
+.md .md-acc-body { padding-bottom:var(--s3); }
+.md .md-acc-body > :first-child { margin-top:0; }
+
+/* Callout (> …) — a key takeaway pulled out of the flow. */
+.md blockquote.callout { margin:1.1em 0; padding:var(--s3) var(--s4);
+  border-left:3px solid var(--accent); background:var(--subtle);
+  border-radius:0 var(--r-sm) var(--r-sm) 0; color:var(--ink); }
+.md blockquote.callout > :first-child { margin-top:0; }
+.md blockquote.callout > :last-child { margin-bottom:0; }
+
 /* Theme switcher (footer) */
-.theme-toggle { display:inline-flex; align-items:center; gap:.5em; margin-top:var(--s4);
-  font-family:var(--sans); font-size:var(--fs-label); font-weight:600; color:var(--muted);
-  background:var(--panel); border:1px solid var(--line); border-radius:var(--r-pill);
-  padding:.45em .9em; cursor:pointer; }
+.theme-toggle { display:inline-flex; align-items:center; justify-content:center; margin-top:var(--s4);
+  width:2.4rem; height:2.4rem; color:var(--muted);
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--r-sm); cursor:pointer; }
 .theme-toggle:hover { border-color:var(--line-strong); color:var(--ink); }
 .theme-toggle:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
-.theme-toggle .icon { width:1.05em; height:1.05em; }
+.theme-toggle .icon { width:1.2em; height:1.2em; }
