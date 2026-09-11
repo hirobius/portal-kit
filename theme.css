@@ -245,11 +245,12 @@ details.acc summary h3 { flex:1; min-width:0; font-size:var(--fs-lead); margin:0
 details.acc .acc-body { margin-top:var(--s3); }
 
 /* Document cards open a reader — the whole card is a button */
-.doc.doc-open { width:100%; text-align:left; cursor:pointer; font-family:inherit; }
-.doc.doc-open:hover { border-color:var(--line-strong); }
-.doc.doc-open:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
-.doc.doc-open .doc-link { border:1px solid var(--accent); background:var(--accent); color:var(--bg);
-  border-radius:var(--r-sm); padding:.5rem 1rem; font-size:var(--fs-label); font-weight:600; }
+/* Doc card actions: Read (filled) + Download (outline) */
+.doc-actions { flex:0 0 auto; display:flex; align-items:center; gap:var(--s3); flex-wrap:wrap; }
+.doc-link { cursor:pointer; font-family:inherit; }
+.doc-link--ghost { background:transparent; color:var(--ink); border-color:var(--line-strong); }
+.doc-link--ghost:hover { border-color:var(--ink); opacity:1; }
+.doc-link--ghost .icon { width:1em; height:1em; }
 
 /* Full-screen document reader */
 .reader-overlay { position:fixed; top:0; left:0; right:0; z-index:50; background:var(--scrim);
@@ -318,3 +319,27 @@ details.acc .acc-body { margin-top:var(--s3); }
 .theme-toggle:hover { border-color:var(--line-strong); color:var(--ink); }
 .theme-toggle:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 .theme-toggle .icon { width:1.2em; height:1.2em; }
+
+/* ============================================================================
+   PRINT — Download builds a print-only .print-doc and opens Save as PDF.
+   Forced to ink-on-white (US Letter) regardless of the on-screen theme.
+   ============================================================================ */
+.print-doc { display:none; }
+@page { size: Letter; margin: 0.75in; }
+@media print {
+  html, body { background:#fff !important; }
+  body > *:not(.print-doc) { display:none !important; }
+  .print-doc { display:block !important;
+    --ink:#141414; --muted:#333; --faint:#555; --line:#cfcfcf; --line-strong:#9a9a9a;
+    --bg:#fff; --panel:#fff; --subtle:#f4f4f4; --accent:#141414; --code-bg:#f0f0f0; --scrim:transparent; }
+  .print-doc .md { max-width:none; color:var(--ink); font-size:11pt; line-height:1.5; }
+  .print-doc .md h1 { font-size:20pt; }
+  .print-doc .md h2 { font-size:14pt; }
+  .print-doc .md h3 { font-size:12pt; }
+  .print-doc .md a { color:#000; }
+  /* Spell out link targets so a printed copy stays useful */
+  .print-doc .md a[href^="http"]::after { content:" (" attr(href) ")"; font-size:.85em; color:#555; word-break:break-all; }
+  .print-doc .md-acc > summary::before { display:none; }
+  .print-doc h1, .print-doc h2, .print-doc h3 { break-after:avoid; }
+  .print-doc table, .print-doc blockquote, .print-doc .md-acc, .print-doc li, .print-doc tr { break-inside:avoid; }
+}

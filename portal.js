@@ -24,7 +24,8 @@
     close:    ['M18 6 6 18', 'm6 6 12 12'],
     sun:      ['M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z', 'M12 1v2', 'M12 21v2', 'M4.2 4.2l1.4 1.4', 'M18.4 18.4l1.4 1.4', 'M1 12h2', 'M21 12h2', 'M4.2 19.8l1.4-1.4', 'M18.4 5.6l1.4-1.4'],
     moon:     ['M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z'],
-    monitor:  ['M20 3H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1Z', 'M8 21h8', 'M12 17v4']
+    monitor:  ['M20 3H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1Z', 'M8 21h8', 'M12 17v4'],
+    download: ['M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4', 'M7 10l5 5 5-5', 'M12 15V3']
   };
 
   function el(tag, cls, text) {
@@ -193,6 +194,23 @@
   }
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeReader(); });
 
+  /* --- Download a document as an 8.5×11 PDF via the browser's print flow.
+     Renders just this document into a print-only container (all collapsible
+     sections forced open), then opens Print → Save as PDF (US Letter). --- */
+  function printDoc(title, bodyId) {
+    var prev = document.getElementById('print-doc');
+    if (prev) prev.remove();
+    var host = el('div', 'print-doc'); host.id = 'print-doc';
+    var article = el('article', 'md'); article.innerHTML = mdToHtml(mdSource(bodyId));
+    article.querySelectorAll('details').forEach(function (d) { d.open = true; }); // nothing hidden in the file
+    host.appendChild(article);
+    document.body.appendChild(host);
+    var cleanup = function () { if (host && host.parentNode) host.remove(); window.removeEventListener('afterprint', cleanup); };
+    window.addEventListener('afterprint', cleanup);
+    window.print();
+    setTimeout(cleanup, 60000); // fallback for browsers that don't fire afterprint
+  }
+
   // Cross-reference links ([text](#doc-id)) open the referenced document's reader.
   var REF_TITLES = {};
   document.addEventListener('click', function (e) {
@@ -320,14 +338,23 @@
       var dwrap = el('div', 'docs');
       docs.forEach(function (dc) {
         if (dc.bodyId) REF_TITLES[dc.bodyId] = dc.title || 'Document'; // enable [text](#id) links
-        var card = el('button', 'doc doc-open'); card.type = 'button';
+        var title = dc.title || 'Document';
+        var card = el('div', 'doc');
         var txt = el('div', 'txt');
-        var dh = el('h3'); dh.appendChild(icon('file', 'doc-ico')); dh.appendChild(document.createTextNode(dc.title || 'Document'));
+        var dh = el('h3'); dh.appendChild(icon('file', 'doc-ico')); dh.appendChild(document.createTextNode(title));
         txt.appendChild(dh);
         if (dc.desc) txt.appendChild(el('p', null, dc.desc));
         card.appendChild(txt);
-        card.appendChild(el('span', 'doc-link', 'Read'));
-        card.addEventListener('click', function () { openReader(dc.title || 'Document', dc.bodyId); });
+
+        var actions = el('div', 'doc-actions');
+        var read = el('button', 'doc-link'); read.type = 'button'; read.textContent = 'Read';
+        read.addEventListener('click', function () { openReader(title, dc.bodyId); });
+        var dl = el('button', 'doc-link doc-link--ghost'); dl.type = 'button';
+        dl.appendChild(icon('download')); dl.appendChild(el('span', null, 'Download'));
+        dl.setAttribute('aria-label', 'Download ' + title + ' as a PDF');
+        dl.addEventListener('click', function () { printDoc(title, dc.bodyId); });
+        actions.appendChild(read); actions.appendChild(dl);
+        card.appendChild(actions);
         dwrap.appendChild(card);
       });
       docSec.appendChild(dwrap);
