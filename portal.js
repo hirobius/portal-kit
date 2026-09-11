@@ -370,7 +370,6 @@
       var fa = el('a', null, email); fa.href = 'mailto:' + email; fc.appendChild(fa);
       footer.appendChild(fc);
     }
-    footer.appendChild(el('p', 'foot-fine', 'Private link — please keep it to yourself.'));
     footer.appendChild(themeButton());
     main.appendChild(footer);
   }
