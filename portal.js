@@ -24,7 +24,9 @@
     close:    ['M18 6 6 18', 'm6 6 12 12'],
     sun:      ['M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z', 'M12 1v2', 'M12 21v2', 'M4.2 4.2l1.4 1.4', 'M18.4 18.4l1.4 1.4', 'M1 12h2', 'M21 12h2', 'M4.2 19.8l1.4-1.4', 'M18.4 5.6l1.4-1.4'],
     moon:     ['M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z'],
-    monitor:  ['M20 3H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1Z', 'M8 21h8', 'M12 17v4']
+    monitor:  ['M20 3H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1Z', 'M8 21h8', 'M12 17v4'],
+    copy:     ['M9 11a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2z', 'M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'],
+    check:    ['M20 6 9 17l-5-5']
   };
 
   function el(tag, cls, text) {
@@ -231,6 +233,80 @@
   }
   applyTheme(readTheme()); // apply saved preference ASAP
 
+  /* --- "Copy for AI": compile the entire portal (every section + the full text
+     of every document) into one structured Markdown blob and copy it, so the
+     client can paste it into any AI assistant. --- */
+  function textForAI(data) {
+    var name = data.client || 'Client';
+    var L = ['# ' + name + ' — Client Portal (complete contents)', ''];
+    L.push('_The full text of ' + name + "'s private project portal, maintained by Hirobius" +
+      (data.lastUpdated ? ', last updated ' + fmtDate(data.lastUpdated) : '') +
+      '. Exported so it can be pasted into any AI assistant for questions or summaries._');
+    if (data.subtitle) { L.push(''); L.push(data.subtitle); }
+
+    var phases = Array.isArray(data.phases) ? data.phases : [];
+    if (phases.length) {
+      L.push('', '---', '', '## Project Status');
+      phases.forEach(function (p) {
+        L.push('', '### ' + (p.title || '') + ' (' + doneIn(p) + '/' + itemsOf(p).length + ' done)');
+        itemsOf(p).forEach(function (it) {
+          var s = normState(it.status);
+          var mark = s === 'done' ? '[x]' : (s === 'in-progress' ? '[~]' : '[ ]');
+          L.push('- ' + mark + ' ' + (it.label || '') + (it.desc ? ' — ' + it.desc : ''));
+        });
+      });
+    }
+    var updates = Array.isArray(data.updates) ? data.updates.slice() : [];
+    if (updates.length) {
+      updates.sort(function (a, b) { return (b.date || '').localeCompare(a.date || ''); });
+      L.push('', '---', '', '## Status Updates');
+      updates.forEach(function (u) { L.push('- ' + (u.date ? fmtDate(u.date) + ': ' : '') + (u.note || '')); });
+    }
+    var accs = Array.isArray(data.accordions) ? data.accordions : [];
+    if (accs.length) {
+      L.push('', '---', '', '## How We Work Together');
+      accs.forEach(function (a) { L.push('', '### ' + (a.title || ''), '', mdSource(a.bodyId).trim()); });
+    }
+    var docs = Array.isArray(data.docs) ? data.docs : [];
+    if (docs.length) {
+      L.push('', '---', '', '# Documents');
+      docs.forEach(function (dc) { L.push('', '---', '', mdSource(dc.bodyId).trim()); });
+    }
+    if (data.contact && data.contact.email) {
+      L.push('', '---', '', '## Contact', '', (data.contact.name ? data.contact.name + ' — ' : '') + data.contact.email);
+    }
+    return L.join('\n').replace(/\n{3,}/g, '\n\n') + '\n';
+  }
+  function legacyCopy(text) {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed'; ta.style.top = '-1000px'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, text.length);
+      var ok = document.execCommand('copy'); document.body.removeChild(ta);
+      return ok;
+    } catch (e) { return false; }
+  }
+  function aiButton(data) {
+    var btn = el('button', 'ai-copy'); btn.type = 'button';
+    var LABEL = 'Copy everything for AI';
+    function paint(iconName, text) {
+      btn.textContent = ''; btn.appendChild(icon(iconName)); btn.appendChild(el('span', null, text));
+    }
+    function flash(text) { paint('check', text); setTimeout(function () { paint('copy', LABEL); }, 2200); }
+    paint('copy', LABEL);
+    btn.addEventListener('click', function () {
+      var text = textForAI(data);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { flash('Copied — now paste into any AI'); },
+          function () { flash(legacyCopy(text) ? 'Copied — now paste into any AI' : 'Press Ctrl/⌘+C to copy'); });
+      } else {
+        flash(legacyCopy(text) ? 'Copied — now paste into any AI' : 'Press Ctrl/⌘+C to copy');
+      }
+    });
+    return btn;
+  }
+
   function render() {
     var dataEl = document.getElementById('portal-data');
     if (!dataEl) { console.error('portal-kit: no #portal-data'); return; }
@@ -339,8 +415,15 @@
       main.appendChild(docSec);
     }
 
-    // Footer — one email link, one small privacy line, theme switcher. Nothing more.
+    // Footer — Copy-for-AI, email, theme switcher.
     var footer = el('footer');
+
+    var aiWrap = el('div', 'foot-ai');
+    aiWrap.appendChild(aiButton(data));
+    aiWrap.appendChild(el('p', 'foot-ai-note',
+      'Copies this whole portal as text. Paste it into ChatGPT, Claude, or any AI assistant and ask it anything about the plan.'));
+    footer.appendChild(aiWrap);
+
     var email = data.contact && data.contact.email;
     if (email) {
       var fc = el('p', 'foot-contact');
