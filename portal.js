@@ -1,48 +1,38 @@
-/* Hirobius Portal Kit — shared renderer for client status portals.
+/* Hirobius Portal Kit — single-page client portal renderer.
  *
- * A client page needs only: this script, the theme.css stylesheet, and a
- * <script type="application/json" id="portal-data"> block holding its content.
- * This file builds the whole page (header + Project Status + Status Updates +
- * Documents) from that data, so structure and behavior are shared too — edit
- * here, redeploy portal-kit, and every linked page updates on next load.
+ * A client page needs only: this script, theme.css, a JSON metadata block
+ * (id="portal-data"), and one <script type="text/markdown" id="..."> block per
+ * accordion body and per document. This file builds the whole page:
+ *   header → Project Status → Status Updates → How We Work Together (accordions)
+ *   → Documents (open in a reader) → Contact → footer + theme switcher.
  *
- * Data shape (see any client page's #portal-data):
- *   { client, lastUpdated, phases:[{id,title,status,items:[{label,status}]}],
- *     updates:[{date,note}], documents:[{title,description,file}] }
+ * portal-data shape:
+ *   { client, lastUpdated, subtitle,
+ *     phases:  [{id, title, status, items:[{label, status, desc}]}],
+ *     updates: [{date, note}],
+ *     accordions: [{title, bodyId}],
+ *     docs:    [{title, desc, bodyId}],
+ *     contact: {name, note, email} }
  *   status is one of: "done" | "in-progress" | "upcoming".
  */
 (function () {
+  var SVGNS = 'http://www.w3.org/2000/svg';
   var STATES = { 'done': 'Done', 'in-progress': 'In progress', 'upcoming': 'Upcoming' };
-  var PLACEHOLDER = 'REPLACE_WITH_PROPOSAL_FILE_PATH';
+  var ICONS = {
+    chevron:  ['m9 18 6-6-6-6'],
+    file:     ['M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z', 'M14 2v4a2 2 0 0 0 2 2h4', 'M16 13H8', 'M16 17H8', 'M10 9H8'],
+    close:    ['M18 6 6 18', 'm6 6 12 12'],
+    sun:      ['M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z', 'M12 1v2', 'M12 21v2', 'M4.2 4.2l1.4 1.4', 'M18.4 18.4l1.4 1.4', 'M1 12h2', 'M21 12h2', 'M4.2 19.8l1.4-1.4', 'M18.4 5.6l1.4-1.4'],
+    moon:     ['M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z'],
+    monitor:  ['M20 3H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1Z', 'M8 21h8', 'M12 17v4']
+  };
 
-  function normState(s) { return STATES[s] ? s : 'upcoming'; }
-  function itemsOf(p) { return Array.isArray(p.items) ? p.items : []; }
-  function doneIn(p) { return itemsOf(p).filter(function (i) { return normState(i.status) === 'done'; }).length; }
-  function isUpcomingPhase(p) {
-    return normState(p.status) === 'upcoming' &&
-      itemsOf(p).every(function (i) { return normState(i.status) === 'upcoming'; });
-  }
-  function fmtDate(iso) {
-    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
-    if (!m) return iso || '';
-    return new Date(+m[1], +m[2] - 1, +m[3])
-      .toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  }
   function el(tag, cls, text) {
     var n = document.createElement(tag);
     if (cls) n.className = cls;
     if (text != null) n.textContent = text;
     return n;
   }
-
-  // Inline Lucide icon subset (no runtime dependency). Sized to text via .icon.
-  var SVGNS = 'http://www.w3.org/2000/svg';
-  var ICONS = {
-    chevron:  ['m9 18 6-6-6-6'],
-    file:     ['M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z', 'M14 2v4a2 2 0 0 0 2 2h4', 'M16 13H8', 'M16 17H8', 'M10 9H8'],
-    external: ['M7 7h10v10', 'M7 17 17 7'],
-    download: ['M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4', 'm7 10 5 5 5-5', 'M12 15V3']
-  };
   function icon(name, cls) {
     var s = document.createElementNS(SVGNS, 'svg');
     s.setAttribute('viewBox', '0 0 24 24');
@@ -55,25 +45,34 @@
     });
     return s;
   }
+  function fmtDate(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    if (!m) return iso || '';
+    return new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+  function normState(s) { return STATES[s] ? s : 'upcoming'; }
+  function itemsOf(p) { return Array.isArray(p.items) ? p.items : []; }
+  function doneIn(p) { return itemsOf(p).filter(function (i) { return normState(i.status) === 'done'; }).length; }
+  function mdSource(id) { var n = document.getElementById(id); return n ? n.textContent : ''; }
+  function secHead(title, countText) {
+    var head = el('div', 'sec-head');
+    head.appendChild(el('h2', null, title));
+    if (countText != null) head.appendChild(el('span', 'count', countText));
+    return head;
+  }
 
-  // Monochrome status checkbox: done = checked, in-progress = indeterminate
-  // (dash), upcoming = empty. Reads as a plain checklist; no color coding.
+  // Monochrome status checkbox: done = checked, in-progress = indeterminate, upcoming = empty.
   function checkbox(state) {
     var s = normState(state);
     var box = el('span', 'cbx cbx-' + s);
     box.setAttribute('role', 'img');
     box.setAttribute('aria-label', STATES[s]);
     var svg = document.createElementNS(SVGNS, 'svg');
-    svg.setAttribute('viewBox', '0 0 20 20');
-    svg.setAttribute('aria-hidden', 'true');
-    svg.setAttribute('class', 'cbx-svg');
+    svg.setAttribute('viewBox', '0 0 20 20'); svg.setAttribute('aria-hidden', 'true'); svg.setAttribute('class', 'cbx-svg');
     var rect = document.createElementNS(SVGNS, 'rect');
-    rect.setAttribute('x', '2.5'); rect.setAttribute('y', '2.5');
-    rect.setAttribute('width', '15'); rect.setAttribute('height', '15'); rect.setAttribute('rx', '4');
+    rect.setAttribute('x', '2.5'); rect.setAttribute('y', '2.5'); rect.setAttribute('width', '15'); rect.setAttribute('height', '15'); rect.setAttribute('rx', '4');
     svg.appendChild(rect);
-    var mark = null;
-    if (s === 'done') mark = 'M5.5 10.5l3 3 6-6.5';
-    else if (s === 'in-progress') mark = 'M6 10h8';
+    var mark = s === 'done' ? 'M5.5 10.5l3 3 6-6.5' : (s === 'in-progress' ? 'M6 10h8' : null);
     if (mark) {
       var p = document.createElementNS(SVGNS, 'path');
       p.setAttribute('d', mark); p.setAttribute('class', 'cbx-mark');
@@ -82,9 +81,6 @@
     box.appendChild(svg);
     return box;
   }
-
-  // A phase's rollup state from its items: all done = done; some done or any in
-  // progress = in-progress (indeterminate); otherwise upcoming.
   function phaseState(p) {
     var items = itemsOf(p);
     if (!items.length) return normState(p.status);
@@ -106,22 +102,113 @@
     });
     return ul;
   }
-  function secHead(title, countText) {
-    var head = el('div', 'sec-head');
-    head.appendChild(el('h2', null, title));
-    if (countText != null) head.appendChild(el('span', 'count', countText));
-    return head;
+
+  /* --- Minimal, safe Markdown -> HTML (headings, bold, italic, code, links,
+     lists, tables, hr, paragraphs). Escaped before formatting. --- */
+  function mdToHtml(src) {
+    function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    function inline(s) {
+      s = esc(s);
+      s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+      s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+      s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      s = s.replace(/(^|[^*])\*([^*]+)\*/g, '$1<em>$2</em>');
+      return s;
+    }
+    var lines = src.replace(/\r/g, '').replace(/^\n+|\n+$/g, '').split('\n');
+    var out = [], i = 0;
+    function isTableSep(s) { return /^\s*\|?[\s:|-]+\|[\s:|-]*$/.test(s) && s.indexOf('-') > -1; }
+    function cells(row) { return row.replace(/^\s*\|/, '').replace(/\|\s*$/, '').split('|').map(function (c) { return inline(c.trim()); }); }
+    while (i < lines.length) {
+      var line = lines[i];
+      if (/^\s*$/.test(line)) { i++; continue; }
+      var h = /^(#{1,6})\s+(.*)$/.exec(line);
+      if (h) { var lv = h[1].length; out.push('<h' + lv + '>' + inline(h[2]) + '</h' + lv + '>'); i++; continue; }
+      if (/^---+\s*$/.test(line)) { out.push('<hr>'); i++; continue; }
+      if (line.indexOf('|') > -1 && i + 1 < lines.length && isTableSep(lines[i + 1])) {
+        var head = cells(line); i += 2; var rows = [];
+        while (i < lines.length && lines[i].indexOf('|') > -1 && !/^\s*$/.test(lines[i])) { rows.push(cells(lines[i])); i++; }
+        var t = '<table><thead><tr>' + head.map(function (c) { return '<th>' + c + '</th>'; }).join('') + '</tr></thead><tbody>';
+        t += rows.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + c + '</td>'; }).join('') + '</tr>'; }).join('');
+        out.push(t + '</tbody></table>');
+        continue;
+      }
+      if (/^\s*[-*]\s+/.test(line)) {
+        var ul = '<ul>';
+        while (i < lines.length && /^\s*[-*]\s+/.test(lines[i])) { ul += '<li>' + inline(lines[i].replace(/^\s*[-*]\s+/, '')) + '</li>'; i++; }
+        out.push(ul + '</ul>'); continue;
+      }
+      if (/^\s*\d+\.\s+/.test(line)) {
+        var ol = '<ol>';
+        while (i < lines.length && /^\s*\d+\.\s+/.test(lines[i])) { ol += '<li>' + inline(lines[i].replace(/^\s*\d+\.\s+/, '')) + '</li>'; i++; }
+        out.push(ol + '</ol>'); continue;
+      }
+      var para = [line]; i++;
+      while (i < lines.length && !/^\s*$/.test(lines[i]) && !/^(#{1,6}\s|[-*]\s|\d+\.\s|---+\s*$)/.test(lines[i]) &&
+             !(lines[i].indexOf('|') > -1 && i + 1 < lines.length && isTableSep(lines[i + 1]))) { para.push(lines[i]); i++; }
+      out.push('<p>' + inline(para.join(' ')) + '</p>');
+    }
+    return out.join('\n');
   }
+
+  /* --- Document reader --- */
+  var overlay = null;
+  function closeReader() { if (overlay) { overlay.remove(); overlay = null; document.body.style.overflow = ''; } }
+  function openReader(title, bodyId) {
+    closeReader();
+    overlay = el('div', 'reader-overlay');
+    overlay.setAttribute('role', 'dialog'); overlay.setAttribute('aria-modal', 'true'); overlay.setAttribute('aria-label', title);
+    var bar = el('div', 'reader-bar');
+    bar.appendChild(el('div', 'reader-title', title));
+    var close = el('button', 'reader-close'); close.setAttribute('aria-label', 'Close');
+    close.appendChild(icon('close')); close.addEventListener('click', closeReader);
+    bar.appendChild(close);
+    var body = el('div', 'reader-body');
+    var article = el('article', 'md'); article.innerHTML = mdToHtml(mdSource(bodyId));
+    body.appendChild(article);
+    overlay.appendChild(bar); overlay.appendChild(body);
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) closeReader(); });
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden';
+    close.focus();
+  }
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeReader(); });
+
+  /* --- Theme switcher: System -> Light -> Dark, saved per-viewer --- */
+  var THEME_KEY = 'portal-theme';
+  var THEMES = ['system', 'light', 'dark'];
+  function readTheme() { try { var v = localStorage.getItem(THEME_KEY); return THEMES.indexOf(v) > -1 ? v : 'system'; } catch (e) { return 'system'; } }
+  function applyTheme(t) {
+    if (t === 'system') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', t);
+  }
+  function themeButton() {
+    var btn = el('button', 'theme-toggle'); btn.type = 'button';
+    function paint() {
+      var t = readTheme();
+      btn.textContent = '';
+      btn.appendChild(icon(t === 'light' ? 'sun' : (t === 'dark' ? 'moon' : 'monitor')));
+      btn.appendChild(el('span', null, 'Theme: ' + (t === 'system' ? 'System' : (t === 'light' ? 'Light' : 'Dark'))));
+      btn.setAttribute('aria-label', 'Theme: ' + t + '. Tap to change.');
+    }
+    btn.addEventListener('click', function () {
+      var next = THEMES[(THEMES.indexOf(readTheme()) + 1) % THEMES.length];
+      try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+      applyTheme(next); paint();
+    });
+    paint();
+    return btn;
+  }
+  applyTheme(readTheme()); // apply saved preference ASAP
 
   function render() {
     var dataEl = document.getElementById('portal-data');
-    if (!dataEl) { console.error('portal-kit: no #portal-data block found'); return; }
+    if (!dataEl) { console.error('portal-kit: no #portal-data'); return; }
     var data;
     try { data = JSON.parse(dataEl.textContent); }
-    catch (e) { console.error('portal-kit: #portal-data JSON is invalid:', e); return; }
+    catch (e) { console.error('portal-kit: #portal-data JSON invalid:', e); return; }
 
     if (data.client) document.title = data.client + ' — Project Portal';
-
     var main = document.querySelector('main') || document.body.appendChild(el('main'));
     main.textContent = '';
 
@@ -133,44 +220,24 @@
     if (data.lastUpdated) meta.appendChild(el('span', 'meta', 'Last updated ' + fmtDate(data.lastUpdated)));
     head.appendChild(meta);
     head.appendChild(el('p', 'subtitle', data.subtitle || 'Where your project stands, updated as we go by Hirobius.'));
-    var prog = el('p', 'progress');
-    head.appendChild(prog);
+    var prog = el('p', 'progress'); head.appendChild(prog);
     main.appendChild(head);
 
-    // Optional nav between the status page and the plan page.
-    if (Array.isArray(data.nav) && data.nav.length) {
-      var nav = el('nav', 'portal-nav');
-      data.nav.forEach(function (it) {
-        var a = el('a', 'nav-link' + (it.current ? ' current' : ''), it.label || '');
-        if (it.href) a.href = it.href;
-        if (it.current) a.setAttribute('aria-current', 'page');
-        nav.appendChild(a);
-      });
-      main.appendChild(nav);
-    }
-
-    // Project Status — active phases prominent, future phases recessed
+    // Project Status — only the phases in the data (uncommitted phases are simply
+    // not included). Each renders as a full card.
     var phases = Array.isArray(data.phases) ? data.phases : [];
-    var currentPhases = phases.filter(function (p) { return !isUpcomingPhase(p); });
-    var upcomingPhases = phases.filter(isUpcomingPhase);
-    var activePhase = currentPhases[currentPhases.length - 1];
-    if (activePhase) {
-      prog.textContent = 'Active now: ' + (activePhase.title || '') +
-        ' · ' + doneIn(activePhase) + ' of ' + itemsOf(activePhase).length + ' steps done';
-    } else if (phases.length) {
-      prog.textContent = 'Getting started';
+    var active = phases.filter(function (p) { return phaseState(p) === 'in-progress'; }).slice(-1)[0] || phases[0];
+    if (active) {
+      prog.textContent = 'Active now: ' + (active.title || '') + ' · ' + doneIn(active) + ' of ' + itemsOf(active).length + ' steps done';
     }
-
     if (phases.length) {
       var statusSec = el('section');
       statusSec.appendChild(secHead('Project Status'));
       var note = el('p', 'sec-note');
-      note.innerHTML = "What's happening now is up top. Everything is marked " +
-        '<b>Done</b>, <b>In progress</b>, or <b>Upcoming</b>.';
+      note.innerHTML = "What's happening now. Each step is marked <strong>Done</strong>, <strong>In progress</strong>, or <strong>Upcoming</strong>.";
       statusSec.appendChild(note);
-
-      var phasesEl = el('div', 'phases');
-      currentPhases.forEach(function (p) {
+      var wrap = el('div', 'phases');
+      phases.forEach(function (p) {
         var card = el('div', 'phase');
         if (p.id) card.id = p.id;
         var h = el('div', 'phase-head');
@@ -179,40 +246,19 @@
         card.appendChild(h);
         card.appendChild(el('p', 'phase-prog', doneIn(p) + ' of ' + itemsOf(p).length + ' done'));
         card.appendChild(itemList(p));
-        phasesEl.appendChild(card);
+        wrap.appendChild(card);
       });
-      statusSec.appendChild(phasesEl);
-
-      if (upcomingPhases.length) {
-        statusSec.appendChild(el('h3', 'coming-h', 'Coming up'));
-        var up = el('div', 'coming-list');
-        upcomingPhases.forEach(function (p) {
-          var d = el('details', 'phase-up');
-          if (p.id) d.id = p.id;
-          var sum = document.createElement('summary');
-          sum.appendChild(icon('chevron', 'chev'));
-          sum.appendChild(checkbox(phaseState(p)));
-          sum.appendChild(el('h3', null, p.title || ''));
-          sum.appendChild(el('span', 'phase-prog', doneIn(p) + ' of ' + itemsOf(p).length + ' done'));
-          d.appendChild(sum);
-          d.appendChild(itemList(p));
-          up.appendChild(d);
-        });
-        statusSec.appendChild(up);
-      }
+      statusSec.appendChild(wrap);
       main.appendChild(statusSec);
     }
 
-    // Status Updates — reverse-chronological
-    var updates = (Array.isArray(data.updates) ? data.updates.slice() : [])
-      .sort(function (a, b) { return (b.date || '').localeCompare(a.date || ''); });
-    var updSec = el('section');
-    updSec.appendChild(secHead('Status Updates', updates.length + (updates.length === 1 ? ' entry' : ' entries')));
-    updSec.appendChild(el('p', 'sec-note', 'Newest first. Short notes from Hirobius as the project moves.'));
-    var feed = el('ul', 'feed');
-    if (!updates.length) {
-      feed.appendChild(el('li', 'empty', 'No updates yet.'));
-    } else {
+    // Status Updates
+    var updates = (Array.isArray(data.updates) ? data.updates.slice() : []).sort(function (a, b) { return (b.date || '').localeCompare(a.date || ''); });
+    if (updates.length) {
+      var updSec = el('section');
+      updSec.appendChild(secHead('Status Updates', updates.length + (updates.length === 1 ? ' entry' : ' entries')));
+      updSec.appendChild(el('p', 'sec-note', 'Newest first. Short notes from Hirobius as the project moves.'));
+      var feed = el('ul', 'feed');
       updates.forEach(function (u) {
         var li = el('li', 'entry');
         var t = el('time', null, fmtDate(u.date));
@@ -221,59 +267,81 @@
         li.appendChild(el('p', null, u.note || ''));
         feed.appendChild(li);
       });
+      updSec.appendChild(feed);
+      main.appendChild(updSec);
     }
-    updSec.appendChild(feed);
-    main.appendChild(updSec);
+
+    // How We Work Together (accordions)
+    var accs = Array.isArray(data.accordions) ? data.accordions : [];
+    if (accs.length) {
+      var accSec = el('section');
+      accSec.appendChild(secHead('How We Work Together'));
+      accs.forEach(function (a) {
+        var d = el('details', 'acc');
+        var sum = document.createElement('summary');
+        sum.appendChild(icon('chevron', 'chev'));
+        sum.appendChild(el('h3', null, a.title || ''));
+        d.appendChild(sum);
+        var body = el('div', 'acc-body md');
+        body.innerHTML = mdToHtml(mdSource(a.bodyId));
+        d.appendChild(body);
+        accSec.appendChild(d);
+      });
+      main.appendChild(accSec);
+    }
 
     // Documents
-    var docs = Array.isArray(data.documents) ? data.documents : [];
-    var docSec = el('section');
-    docSec.appendChild(secHead('Documents'));
-    docSec.appendChild(el('p', 'sec-note', 'Shared documents for this project.'));
-    var docsEl = el('div', 'docs');
-    if (!docs.length) {
-      docsEl.appendChild(el('p', 'empty', 'No documents yet.'));
-    } else {
-      docs.forEach(function (d) {
-        var card = el('div', 'doc');
+    var docs = Array.isArray(data.docs) ? data.docs : [];
+    if (docs.length) {
+      var docSec = el('section');
+      docSec.appendChild(secHead('Documents'));
+      docSec.appendChild(el('p', 'sec-note', 'Tap a document to read it here. Everything below is yours to keep.'));
+      var dwrap = el('div', 'docs');
+      docs.forEach(function (dc) {
+        var card = el('button', 'doc doc-open'); card.type = 'button';
         var txt = el('div', 'txt');
-        var dh = el('h3');
-        dh.appendChild(icon('file', 'doc-ico'));
-        dh.appendChild(document.createTextNode(d.title || 'Document'));
+        var dh = el('h3'); dh.appendChild(icon('file', 'doc-ico')); dh.appendChild(document.createTextNode(dc.title || 'Document'));
         txt.appendChild(dh);
-        if (d.description) txt.appendChild(el('p', null, d.description));
+        if (dc.desc) txt.appendChild(el('p', null, dc.desc));
         card.appendChild(txt);
-        var action = el('div', 'doc-action');
-        if (d.file && d.file !== PLACEHOLDER) {
-          var isUrl = /^https?:/i.test(d.file);
-          var a = el('a', 'doc-link');
-          a.href = d.file;
-          a.setAttribute('target', '_blank');
-          a.setAttribute('rel', 'noopener');
-          if (!isUrl) a.setAttribute('download', '');
-          a.appendChild(document.createTextNode('Open'));
-          a.appendChild(icon(isUrl ? 'external' : 'download'));
-          action.appendChild(a);
-        } else {
-          action.appendChild(el('span', 'doc-pending', 'Awaiting file'));
-        }
-        card.appendChild(action);
-        docsEl.appendChild(card);
+        card.appendChild(el('span', 'doc-link', 'Read'));
+        card.addEventListener('click', function () { openReader(dc.title || 'Document', dc.bodyId); });
+        dwrap.appendChild(card);
       });
+      docSec.appendChild(dwrap);
+      main.appendChild(docSec);
     }
-    docSec.appendChild(docsEl);
-    main.appendChild(docSec);
 
-    // Footer
+    // Contact
+    if (data.contact) {
+      var c = data.contact;
+      var cSec = el('section');
+      cSec.appendChild(secHead('Contact'));
+      var box = el('div', 'contact');
+      if (c.name) box.appendChild(el('p', 'contact-name', c.name));
+      if (c.note) box.appendChild(el('p', 'contact-note', c.note));
+      var list = el('ul', 'contact-list');
+      (c.phones || []).forEach(function (ph) {
+        if (!ph.value || /^\[.*\]$/.test(ph.value)) return; // skip unfilled placeholders
+        var li = el('li'); li.appendChild(el('span', 'k', ph.label || 'Phone')); li.appendChild(el('span', 'v', ph.value)); list.appendChild(li);
+      });
+      if (c.email) {
+        var li2 = el('li'); li2.appendChild(el('span', 'k', 'Email'));
+        var a = el('a', 'v', c.email); a.href = 'mailto:' + c.email; li2.appendChild(a); list.appendChild(li2);
+      }
+      box.appendChild(list);
+      cSec.appendChild(box);
+      main.appendChild(cSec);
+    }
+
+    // Footer + theme switcher (very bottom)
     var footer = el('footer');
     footer.appendChild(el('p', null,
       (data.client || 'This portal') + ' · Private project portal maintained by Hirobius. Do not share the link or password.'));
+    footer.appendChild(themeButton());
     main.appendChild(footer);
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', render);
-  } else {
-    render();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render);
+  else render();
 })();
