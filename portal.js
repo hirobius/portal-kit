@@ -306,6 +306,13 @@
     });
     return btn;
   }
+  var AI_NOTE = 'Copies this whole portal as text. Paste it into ChatGPT, Claude, or any AI assistant and ask it anything about the plan.';
+  function aiBlock(data, extraCls) {
+    var w = el('div', 'foot-ai' + (extraCls ? ' ' + extraCls : ''));
+    w.appendChild(aiButton(data));
+    w.appendChild(el('p', 'foot-ai-note', AI_NOTE));
+    return w;
+  }
 
   function render() {
     var dataEl = document.getElementById('portal-data');
@@ -326,6 +333,9 @@
     head.appendChild(el('h1', null, data.client || 'Project Portal'));
     head.appendChild(el('p', 'subtitle', data.subtitle || 'Where your project stands, updated as we go by Hirobius.'));
     main.appendChild(head);
+
+    // Copy-for-AI (top). A matching block also sits in the footer.
+    main.appendChild(aiBlock(data, 'top-ai'));
 
     // Project Status — only the phases in the data (uncommitted phases are simply
     // not included). Each renders as a full card.
@@ -417,12 +427,7 @@
 
     // Footer — Copy-for-AI, email, theme switcher.
     var footer = el('footer');
-
-    var aiWrap = el('div', 'foot-ai');
-    aiWrap.appendChild(aiButton(data));
-    aiWrap.appendChild(el('p', 'foot-ai-note',
-      'Copies this whole portal as text. Paste it into ChatGPT, Claude, or any AI assistant and ask it anything about the plan.'));
-    footer.appendChild(aiWrap);
+    footer.appendChild(aiBlock(data));
 
     var email = data.contact && data.contact.email;
     if (email) {
