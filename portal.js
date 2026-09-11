@@ -137,6 +137,18 @@
     head.appendChild(prog);
     main.appendChild(head);
 
+    // Optional nav between the status page and the plan page.
+    if (Array.isArray(data.nav) && data.nav.length) {
+      var nav = el('nav', 'portal-nav');
+      data.nav.forEach(function (it) {
+        var a = el('a', 'nav-link' + (it.current ? ' current' : ''), it.label || '');
+        if (it.href) a.href = it.href;
+        if (it.current) a.setAttribute('aria-current', 'page');
+        nav.appendChild(a);
+      });
+      main.appendChild(nav);
+    }
+
     // Project Status — active phases prominent, future phases recessed
     var phases = Array.isArray(data.phases) ? data.phases : [];
     var currentPhases = phases.filter(function (p) { return !isUpcomingPhase(p); });
