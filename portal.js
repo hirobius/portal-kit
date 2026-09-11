@@ -110,6 +110,8 @@
     function inline(s) {
       s = esc(s);
       s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+      // In-portal cross-reference: [text](#doc-id) opens that document's reader.
+      s = s.replace(/\[([^\]]+)\]\(#([a-z0-9-]+)\)/gi, '<a href="#$2" class="xref" data-ref="$2">$1</a>');
       s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
       s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
       s = s.replace(/(^|[^*])\*([^*]+)\*/g, '$1<em>$2</em>');
@@ -174,6 +176,16 @@
   }
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeReader(); });
 
+  // Cross-reference links ([text](#doc-id)) open the referenced document's reader.
+  var REF_TITLES = {};
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a.xref[data-ref]') : null;
+    if (!a) return;
+    e.preventDefault();
+    var id = a.getAttribute('data-ref');
+    if (mdSource(id)) openReader(REF_TITLES[id] || 'Document', id);
+  });
+
   /* --- Theme switcher: System -> Light -> Dark, saved per-viewer --- */
   var THEME_KEY = 'portal-theme';
   var THEMES = ['system', 'light', 'dark'];
@@ -212,30 +224,21 @@
     var main = document.querySelector('main') || document.body.appendChild(el('main'));
     main.textContent = '';
 
-    // Header
+    // Header — eyebrow (metadata joined by • ) · heading · subheading. Nothing else.
     var head = el('header', 'head');
+    var bits = ['Private'];
+    if (data.lastUpdated) bits.push('Updated ' + fmtDate(data.lastUpdated));
+    head.appendChild(el('p', 'eyebrow', bits.join(' • ')));
     head.appendChild(el('h1', null, data.client || 'Project Portal'));
-    var meta = el('div', 'head-meta');
-    meta.appendChild(el('span', 'tag', 'Private'));
-    if (data.lastUpdated) meta.appendChild(el('span', 'meta', 'Last updated ' + fmtDate(data.lastUpdated)));
-    head.appendChild(meta);
     head.appendChild(el('p', 'subtitle', data.subtitle || 'Where your project stands, updated as we go by Hirobius.'));
-    var prog = el('p', 'progress'); head.appendChild(prog);
     main.appendChild(head);
 
     // Project Status — only the phases in the data (uncommitted phases are simply
     // not included). Each renders as a full card.
     var phases = Array.isArray(data.phases) ? data.phases : [];
-    var active = phases.filter(function (p) { return phaseState(p) === 'in-progress'; }).slice(-1)[0] || phases[0];
-    if (active) {
-      prog.textContent = 'Active now: ' + (active.title || '') + ' · ' + doneIn(active) + ' of ' + itemsOf(active).length + ' steps done';
-    }
     if (phases.length) {
       var statusSec = el('section');
       statusSec.appendChild(secHead('Project Status'));
-      var note = el('p', 'sec-note');
-      note.innerHTML = "What's happening now. Each step is marked <strong>Done</strong>, <strong>In progress</strong>, or <strong>Upcoming</strong>.";
-      statusSec.appendChild(note);
       var wrap = el('div', 'phases');
       phases.forEach(function (p) {
         var card = el('div', 'phase');
@@ -298,6 +301,7 @@
       docSec.appendChild(el('p', 'sec-note', 'Tap a document to read it here. Everything below is yours to keep.'));
       var dwrap = el('div', 'docs');
       docs.forEach(function (dc) {
+        if (dc.bodyId) REF_TITLES[dc.bodyId] = dc.title || 'Document'; // enable [text](#id) links
         var card = el('button', 'doc doc-open'); card.type = 'button';
         var txt = el('div', 'txt');
         var dh = el('h3'); dh.appendChild(icon('file', 'doc-ico')); dh.appendChild(document.createTextNode(dc.title || 'Document'));
@@ -312,32 +316,16 @@
       main.appendChild(docSec);
     }
 
-    // Contact
-    if (data.contact) {
-      var c = data.contact;
-      var cSec = el('section');
-      cSec.appendChild(secHead('Contact'));
-      var box = el('div', 'contact');
-      if (c.name) box.appendChild(el('p', 'contact-name', c.name));
-      if (c.note) box.appendChild(el('p', 'contact-note', c.note));
-      var list = el('ul', 'contact-list');
-      (c.phones || []).forEach(function (ph) {
-        if (!ph.value || /^\[.*\]$/.test(ph.value)) return; // skip unfilled placeholders
-        var li = el('li'); li.appendChild(el('span', 'k', ph.label || 'Phone')); li.appendChild(el('span', 'v', ph.value)); list.appendChild(li);
-      });
-      if (c.email) {
-        var li2 = el('li'); li2.appendChild(el('span', 'k', 'Email'));
-        var a = el('a', 'v', c.email); a.href = 'mailto:' + c.email; li2.appendChild(a); list.appendChild(li2);
-      }
-      box.appendChild(list);
-      cSec.appendChild(box);
-      main.appendChild(cSec);
-    }
-
-    // Footer + theme switcher (very bottom)
+    // Footer — one email link, one small privacy line, theme switcher. Nothing more.
     var footer = el('footer');
-    footer.appendChild(el('p', null,
-      (data.client || 'This portal') + ' · Private project portal maintained by Hirobius. Do not share the link or password.'));
+    var email = data.contact && data.contact.email;
+    if (email) {
+      var fc = el('p', 'foot-contact');
+      fc.appendChild(document.createTextNode('Questions? '));
+      var fa = el('a', null, email); fa.href = 'mailto:' + email; fc.appendChild(fa);
+      footer.appendChild(fc);
+    }
+    footer.appendChild(el('p', 'foot-fine', 'Private link — please keep it to yourself.'));
     footer.appendChild(themeButton());
     main.appendChild(footer);
   }
