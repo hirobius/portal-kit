@@ -6,45 +6,93 @@
 <meta name="robots" content="noindex" />
 <title>Hirobius Portal Kit — Demo</title>
 <link rel="stylesheet" href="/theme.css" />
+<style>
+  #fallback { max-width:640px; margin:0 auto; padding:2rem 1.25rem;
+    font-family:system-ui, sans-serif; line-height:1.55; color:#141414; }
+</style>
 </head>
 <body>
   <!-- This demo renders sample data through the shared theme + renderer, exactly
-       the way a real client page does. It's here so you can see the kit live and
-       confirm a theme.css edit sweeps through. Real client pages live in their
-       own repos and link this host's /theme.css and /portal.js. -->
+       the way a real client page does — showcasing several section types so a
+       theme.css or portal.js edit can be confirmed live. Real client pages live
+       in their own repos and link this host's /theme.css and /portal.js. -->
   <script type="application/json" id="portal-data">
   {
     "client": "Demo Client",
-    "lastUpdated": "2026-09-10",
-    "phases": [
+    "subtitle": "A live demo of the Hirobius portal kit.",
+    "lastUpdated": "2026-09-16",
+    "progress": true,
+    "contact": { "email": "hello@hirobius.com" },
+    "footer": { "lines": ["Hirobius Portal Kit — live demo"] },
+    "sections": [
       {
-        "id": "phase-0",
-        "title": "Phase 0 — Example (active)",
-        "status": "in-progress",
-        "items": [
-          { "label": "A finished step", "status": "done" },
-          { "label": "A step in progress", "status": "in-progress" },
-          { "label": "A step not started", "status": "upcoming" }
+        "type": "status", "id": "status", "title": "Project Status",
+        "phases": [
+          { "id": "phase-0", "title": "Phase 0 — Example (active)", "status": "in-progress",
+            "items": [
+              { "label": "A finished step", "status": "done" },
+              { "label": "A step in progress", "status": "in-progress" },
+              { "label": "A step not started", "status": "upcoming" }
+            ] },
+          { "id": "phase-1", "title": "Phase 1 — Example (upcoming)", "status": "upcoming",
+            "items": [
+              { "label": "Future step one", "status": "upcoming" },
+              { "label": "Future step two", "status": "upcoming" }
+            ] }
         ]
       },
       {
-        "id": "phase-1",
-        "title": "Phase 1 — Example (upcoming)",
-        "status": "upcoming",
-        "items": [
-          { "label": "Future step one", "status": "upcoming" },
-          { "label": "Future step two", "status": "upcoming" }
+        "type": "tasks", "id": "setup", "eyebrow": "Setup", "title": "What we need from you",
+        "note": "Example setup task-cards, with owner chips and a To-do/Done toggle saved on this device.",
+        "subgroups": [
+          {
+            "id": "access", "title": "Access & approvals", "count": "1 item",
+            "decisions": { "eyebrow": "Already decided", "items": [ { "text": "This is a sample decision card." } ] },
+            "tasks": [
+              {
+                "id": "A1", "title": "Example access item", "owner": "Client",
+                "fields": [
+                  { "k": "What it is", "v": "A sample task card: a code, an owner chip, labeled fields, collapsible steps, and a status toggle." },
+                  { "k": "Send back", "v": "Whatever this task needs." }
+                ],
+                "steps": [ "Do the first thing.", "Then the second thing." ]
+              }
+            ]
+          }
         ]
+      },
+      {
+        "type": "list", "id": "build", "eyebrow": "Build status", "title": "Workflows", "navTitle": "Build status", "count": "2",
+        "note": "The bordered list used for build status and roadmaps.",
+        "items": [
+          { "name": "Example workflow", "status": { "label": "Live-tested", "kind": "built" }, "note": "Ready to go." },
+          { "name": "Another workflow", "status": { "label": "Waiting", "kind": "wait" }, "note": "**Waiting on:** A1." }
+        ]
+      },
+      {
+        "type": "docs", "id": "docs", "title": "Documents", "note": "Tap a document to read it in-page.",
+        "items": [ { "title": "Example Document", "desc": "Rendered from a markdown block.", "bodyId": "doc-example" } ]
+      },
+      {
+        "type": "updates", "id": "updates", "title": "Status Updates",
+        "items": [ { "date": "2026-09-16", "note": "This demo is rendered entirely by portal.js from the JSON above." } ]
       }
-    ],
-    "updates": [
-      { "date": "2026-09-10", "note": "This is a sample status update rendered by portal.js." }
-    ],
-    "documents": [
-      { "title": "Example Document", "description": "Description goes here.", "file": "REPLACE_WITH_PROPOSAL_FILE_PATH" }
     ]
   }
   </script>
+
+  <script type="text/markdown" id="doc-example">
+# Example Document
+
+This document is stored as a markdown block and opened in the in-page reader.
+
+- Lists, **bold**, `code`, and [links](https://example.com) all render.
+
+> Callouts like this work too.
+  </script>
+
+  <main id="fallback"><p>Loading the demo…</p></main>
+
   <script src="/portal.js" defer></script>
 </body>
 </html>

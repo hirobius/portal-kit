@@ -8,22 +8,33 @@
 <!-- Link the shared theme. Replace <PORTAL_KIT_HOST> with the deployed portal-kit
      origin, e.g. https://portal-kit.vercel.app -->
 <link rel="stylesheet" href="https://<PORTAL_KIT_HOST>/theme.css" />
+<style>
+  /* Tiny inline fallback so the page is readable if the shared kit can't load. */
+  #fallback { max-width:640px; margin:0 auto; padding:2rem 1.25rem;
+    font-family:system-ui, sans-serif; line-height:1.55; color:#141414; }
+</style>
 </head>
 <body>
-  <!-- The ONLY thing a client page owns is this data block. Structure and styling
-       come from the shared kit, so a theme.css edit sweeps every client page. -->
+  <!-- A client page owns only its content. Structure + styling come from the kit.
+       This starter uses the SIMPLE top-level layout (phases + updates + docs).
+       For richer portals — setup task-cards, roadmap lists, a custom-request box,
+       a two-block secure Copy-for-AI — use a "sections" array instead. See the
+       README "Section types" table. Long documents go in <script type="text/markdown">
+       blocks, referenced by "bodyId". -->
   <script type="application/json" id="portal-data">
   {
     "client": "Client Name",
+    "subtitle": "Your plan and resources in one place.",
     "lastUpdated": "2026-01-01",
+    "contact": { "email": "you@example.com" },
     "phases": [
       {
         "id": "phase-0",
         "title": "Phase 0 — Title",
         "status": "in-progress",
         "items": [
-          { "label": "A task", "status": "done" },
-          { "label": "Another task", "status": "in-progress" },
+          { "label": "A finished task", "status": "done" },
+          { "label": "A task in progress", "status": "in-progress" },
           { "label": "A future task", "status": "upcoming" }
         ]
       }
@@ -31,11 +42,29 @@
     "updates": [
       { "date": "2026-01-01", "note": "First update." }
     ],
-    "documents": [
-      { "title": "Proposal", "description": "Plan and pricing.", "file": "REPLACE_WITH_PROPOSAL_FILE_PATH" }
+    "docs": [
+      { "title": "Proposal", "desc": "Plan and pricing.", "bodyId": "doc-proposal" }
     ]
   }
   </script>
+
+  <script type="text/markdown" id="doc-proposal">
+# Proposal
+
+Replace this markdown with the real document. It renders in the in-page reader.
+
+- **What we'll do** — the plan.
+- **Investment** — the pricing.
+
+> Callouts, tables, and [links](https://example.com) all work here.
+  </script>
+
+  <!-- Replaced by portal.js on load; only shows if the shared kit can't load. -->
+  <main id="fallback">
+    <p>Loading the portal… If this message stays, the shared portal service may be
+    temporarily unavailable — please contact us.</p>
+  </main>
+
   <script src="https://<PORTAL_KIT_HOST>/portal.js" defer></script>
 </body>
 </html>
