@@ -1,7 +1,7 @@
 # Hirobius Portal Kit
 
 The **single source of truth** for the visual style, structure, and behavior of
-every client status portal (Lilac, Access Tech, and future clients). A client
+every client status portal, current and future. A client
 page ships only *data*; this kit renders it. Edit the theme or renderer here
 once, redeploy, and every client page updates on next load — no per-project
 reinvention.
@@ -55,7 +55,7 @@ Top level:
   "lastUpdated": "2026-01-01",
   "header":   { "eyebrow": false, "livelyHeading": true },
   "progress": true,
-  "parties":  [{ "label": "Lilac", "cls": "a" }, { "label": "Hirobius", "cls": "b" }],
+  "parties":  [{ "label": "Client", "cls": "a" }, { "label": "Hirobius", "cls": "b" }],
   "copyForAI":{ "mode": "generic", "placement": ["top", "footer"] },
   "sections": [ "...ordered, typed sections..." ],
   "contact":  { "name": "", "email": "you@example.com" },
@@ -65,7 +65,7 @@ Top level:
 
 If you omit `sections`, a **simple** layout is synthesized from top-level
 `phases` / `updates` / `accordions` / `docs` — enough for a documents-and-status
-portal (this is what Access Tech uses).
+portal.
 
 ### Section types
 
@@ -99,8 +99,7 @@ for a category/option grid.
   button appears (`["top","footer"]`).
 - **`payload`** — the button copies a named `<script type="application/json">`
   block **verbatim** (set `payloadId`), so a structured intake payload's own
-  `instructionsForAssistant` drives the assistant. Lilac uses this for its
-  two-block (Bitwarden Send + email) secure intake.
+  `instructionsForAssistant` drives the assistant.
 
 ### Owner chips
 
