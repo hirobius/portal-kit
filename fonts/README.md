@@ -14,4 +14,4 @@ request. `vercel.json` serves this directory with `Access-Control-Allow-Origin: 
 so client pages on other domains can load the fonts cross-origin.
 
 Satoshi is by Indian Type Foundry, free under the Fontshare license — keep the
-license file alongside the woff2 files (see the copy in the lilac repo).
+license file alongside the woff2 files (`Satoshi-FFL-License.txt`).

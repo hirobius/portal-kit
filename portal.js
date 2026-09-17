@@ -11,7 +11,7 @@
  *     "lastUpdated": "2026-01-01",
  *     "header":   { "eyebrow": false, "livelyHeading": true },  // both optional
  *     "progress": true,                                          // show done-count line
- *     "parties":  [{ "label": "Lilac", "cls": "a" }, { "label": "Hirobius", "cls": "b" }],
+ *     "parties":  [{ "label": "Client", "cls": "a" }, { "label": "Hirobius", "cls": "b" }],
  *     "copyForAI":{ "mode": "generic|payload", "payloadId": "portal-payload",
  *                   "label": "Copy for AI", "placement": ["top","footer"] },
  *     "sections": [ …ordered typed sections, see below… ],
@@ -799,7 +799,7 @@
     catch (e) { console.error('portal-kit: #portal-data JSON invalid:', e); return; }
 
     var cfg = data.copyForAI || { mode: 'generic', placement: ['top', 'footer'] };
-    var ctx = { parties: data.parties || [{ label: 'Lilac', cls: 'a' }, { label: 'Hirobius', cls: 'b' }] };
+    var ctx = { parties: data.parties || [{ label: 'Client', cls: 'a' }, { label: 'Hirobius', cls: 'b' }] };
     if (data.client) { document.title = data.client + (data.titleSuffix || ' — Project Portal'); CHECK_KEY = 'portal-checks:' + data.client; }
 
     var fb = document.getElementById('fallback'); if (fb) fb.remove();

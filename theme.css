@@ -1,7 +1,7 @@
 /* Hirobius Portal Kit — shared theme for client status portals.
    Single source of truth: edit this file, redeploy portal-kit, and every client
-   page that links it picks up the new styling on next load. Matches the Lilac
-   design language (Satoshi, neutral palette, pill states, elevated white cards).
+   page that links it picks up the new styling on next load. Design language:
+   Satoshi, neutral palette, pill states, elevated white cards.
 
    Client pages link this with:
      <link rel="stylesheet" href="https://<portal-kit-host>/theme.css">
