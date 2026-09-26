@@ -26,7 +26,10 @@
  *   assist   {id,title,body,steps[],notes[],cta:{label}}            — intro + Copy-for-AI CTA
  *   callout  {id,variant:"alert"|"plain",title,body,items[]}        — pulled-out note
  *   status   {id,eyebrow,title,note,phases[{id,title,status,items[{label,status,desc}]}]}
- *   tasks    {id,eyebrow,title,note,subgroups[{id,title,count,decisions,tasks[]}]}
+ *   tasks    {id,eyebrow,title,note,collapsible,subgroups[{id,title,count,decisions,tasks[]}]}
+ *            collapsible:true (opt-in) renders each card as a tap-to-open row:
+ *            code, title, tags and owner stay visible; the rest opens on tap.
+ *            A task's "open":true starts it expanded.
  *   list     {id,eyebrow,title,count,note,items[{name,sub,status:{label,kind},note}],footNote}
  *   queue    {id,eyebrow,title,note,items[],footNote}               — ordered list
  *   cards    {id,eyebrow,title,columns,items[{n,title,text}]}       — value cards
@@ -511,15 +514,24 @@
     return wrap;
   }
   function renderTaskCard(task, ctx) {
-    var card = el('div', 'task');
+    var collapsible = !!ctx.collapsible;
+    var card = el(collapsible ? 'details' : 'div', collapsible ? 'task collapsible' : 'task');
+    if (collapsible && task.open) card.setAttribute('open', '');
     if (task.id) card.id = String(task.id).toLowerCase();
     var row = el('div', 'task-row');
+    if (collapsible) row.appendChild(icon('chevron', 'chev'));
     if (task.id) row.appendChild(el('span', 'code', task.id));
     row.appendChild(el('span', 'title', task.title || ''));
     arr(task.tags).forEach(function (tg) { row.appendChild(el('span', 'pill tag', tg)); });
-    card.appendChild(row);
-    if (task.owner) card.appendChild(ownerChip(task.owner, ctx.parties));
-    arr(task.fields).forEach(function (f) { card.appendChild(taskField(f)); });
+    var head = card, body = card;
+    if (collapsible) {
+      head = document.createElement('summary'); head.className = 'task-sum';
+      body = el('div', 'task-body');
+      card.appendChild(head); card.appendChild(body);
+    }
+    head.appendChild(row);
+    if (task.owner) head.appendChild(ownerChip(task.owner, ctx.parties));
+    arr(task.fields).forEach(function (f) { body.appendChild(taskField(f)); });
     if (arr(task.steps).length) {
       var det = el('details'); if (task.stepsOpen) det.setAttribute('open', '');
       var sum = document.createElement('summary');
@@ -529,12 +541,12 @@
       var ol = el('ol', 'steps');
       task.steps.forEach(function (st) { var li = el('li'); li.innerHTML = inlineHTML(st); ol.appendChild(li); });
       det.appendChild(ol);
-      card.appendChild(det);
+      body.appendChild(det);
     }
-    if (task.statusToggle !== false && task.id) addStatusToggle(card, String(task.id));
+    if (task.statusToggle !== false && task.id) addStatusToggle(card, String(task.id), body);
     return card;
   }
-  function addStatusToggle(card, code) {
+  function addStatusToggle(card, code, host) {
     var label = el('label', 'status');
     var box = document.createElement('input'); box.type = 'checkbox'; box.className = 'chk';
     box.setAttribute('aria-label', 'Mark ' + code + ' done');
@@ -545,7 +557,7 @@
       writeChecks(saved); reflect(); updateProgress();
     });
     label.appendChild(box); label.appendChild(txt);
-    card.appendChild(label);
+    (host || card).appendChild(label);
     TASK_NODES.push({ card: card, code: code, box: box, reflect: reflect });
   }
   function renderTasks(sec, ctx) {
@@ -568,7 +580,8 @@
         dwrap.appendChild(grid); s.appendChild(dwrap);
       }
       var tasks = el('div', 'tasks');
-      arr(g.tasks).forEach(function (t) { tasks.appendChild(renderTaskCard(t, ctx)); });
+      var tctx = sec.collapsible ? Object.assign({}, ctx, { collapsible: true }) : ctx;
+      arr(g.tasks).forEach(function (t) { tasks.appendChild(renderTaskCard(t, tctx)); });
       s.appendChild(tasks);
     });
     return s;
@@ -740,11 +753,17 @@
         if (!document.getElementById(id)) continue;
         frag.appendChild(document.createTextNode(text.slice(last, m.index)));
         var a = el('a', 'idlink', code); a.setAttribute('href', '#' + id);
+        a.addEventListener('click', openTarget);
         frag.appendChild(a); last = m.index + code.length;
       }
       if (last === 0) return;
       frag.appendChild(document.createTextNode(text.slice(last)));
       textNode.parentNode.replaceChild(frag, textNode);
+    }
+    // A jump link to a collapsed card opens it.
+    function openTarget(e) {
+      var t = document.getElementById(e.currentTarget.getAttribute('href').slice(1));
+      if (t && t.tagName === 'DETAILS') t.open = true;
     }
   }
 

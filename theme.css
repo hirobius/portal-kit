@@ -411,6 +411,16 @@ details.acc .acc-body { margin-top:var(--s3); }
 .task.done { background:var(--subtle); }
 .task.done .task-row .title { text-decoration:line-through; color:var(--muted); }
 
+/* Collapsible task cards (opt-in: tasks section "collapsible": true) */
+details.task.collapsible { padding:var(--s4) var(--s5); }
+details.task.collapsible > summary.task-sum { list-style:none; cursor:pointer; }
+details.task.collapsible > summary.task-sum::-webkit-details-marker { display:none; }
+details.task.collapsible > summary.task-sum:focus-visible { outline:2px solid var(--accent); outline-offset:4px; border-radius:var(--r-sm); }
+details.task.collapsible .task-row .chev { color:var(--faint); transition:transform .15s ease; flex:none; }
+details.task.collapsible[open] .task-row .chev { transform:rotate(90deg); }
+@media (prefers-reduced-motion: reduce){ details.task.collapsible .task-row .chev { transition:none; } }
+details.task.collapsible .task-body { padding-top:var(--s1); }
+
 /* Owner chip (under the task title) */
 .owner { margin:var(--s2) 0 0; }
 .owner-chip { display:inline-block; font-size:var(--fs-label); font-weight:600; padding:.22em .7em;
