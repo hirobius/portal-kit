@@ -446,7 +446,9 @@ details.task.collapsible .task-body { padding-top:var(--s1); }
 .dg-step-list li { font-size:var(--fs-body); color:var(--muted); margin:var(--s2) 0; }
 .dg-step-list li b { color:var(--ink); font-weight:600; }
 .dg-step-list li.pending { opacity:.8; }
-@media (max-width:759px){ .dg { grid-template-columns:1fr; gap:var(--s5); } .dg-lines { display:none; } }
+.dg-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:var(--s2); }
+.dg-hint { display:none; margin:0 0 var(--s2); font-size:var(--fs-label); color:var(--faint); }
+@media (max-width:759px){ .dg { min-width:640px; gap:var(--s5); } .dg-hint { display:block; } }
 
 /* Owner chip (under the task title) */
 .owner { margin:var(--s2) 0 0; }

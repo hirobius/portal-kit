@@ -36,8 +36,9 @@
  *   request  {id,eyebrow,title,note,placeholder,email,subject}      — mailto feedback box
  *   diagram  {id,eyebrow,title,note,lanes[{title,nodes[{id,title,desc,status:{label,kind}}]}],
  *            edges[{from,to,label,style:"main"|"pending"}],stepsTitle}
- *            — lanes of node cards joined by arrows (drawn when lanes sit side
- *            by side), plus the same flow as a numbered list of steps.
+ *            — lanes of node cards joined by arrows, plus the same flow as a
+ *            numbered list of steps. On phones the diagram keeps its layout and
+ *            scrolls sideways.
  *   updates  {id,eyebrow,title,items[{date,note}]}
  *   accordions {id,eyebrow,title,items[{title,bodyId}]}
  *   docs     {id,eyebrow,title,note,items[{title,desc,bodyId}]}
@@ -657,7 +658,10 @@
     var svg = document.createElementNS(SVGNS, 'svg');
     svg.setAttribute('class', 'dg-lines'); svg.setAttribute('aria-hidden', 'true');
     fig.appendChild(svg);
-    s.appendChild(fig);
+    var scroller = el('div', 'dg-scroll');
+    scroller.appendChild(fig);
+    s.appendChild(el('p', 'dg-hint', 'Swipe sideways to see the whole flow →'));
+    s.appendChild(scroller);
 
     var steps = el('details', 'dg-steps');
     if (window.matchMedia && window.matchMedia('(max-width: 759px)').matches) steps.setAttribute('open', '');
@@ -679,7 +683,7 @@
     function draw() {
       while (svg.firstChild) svg.removeChild(svg.firstChild);
       var box = fig.getBoundingClientRect();
-      if (!box.width || !(window.matchMedia && window.matchMedia('(min-width: 760px)').matches)) return;
+      if (!box.width) return;
       svg.setAttribute('viewBox', '0 0 ' + box.width + ' ' + box.height);
       var defs = mk('defs', {});
       ['main', 'plain'].forEach(function (k) {
