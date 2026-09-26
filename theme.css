@@ -421,6 +421,33 @@ details.task.collapsible[open] .task-row .chev { transform:rotate(90deg); }
 @media (prefers-reduced-motion: reduce){ details.task.collapsible .task-row .chev { transition:none; } }
 details.task.collapsible .task-body { padding-top:var(--s1); }
 
+/* Diagram section (type "diagram") */
+.dg { position:relative; display:grid; grid-template-columns:repeat(var(--dg-lanes, 3), minmax(0, 1fr)); gap:var(--s7, 48px); }
+.dg-lane { display:flex; flex-direction:column; gap:var(--s4); position:relative; z-index:1; }
+.dg-lane-title { margin:0; font-size:var(--fs-label); font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--faint); }
+.dg-node { background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md); padding:var(--s3) var(--s4); }
+.dg-node.key { border-color:var(--line-strong); box-shadow:var(--shadow); }
+.dg-node-top { display:flex; align-items:center; gap:var(--s2); flex-wrap:wrap; }
+.dg-node-top b { font-size:var(--fs-body); font-weight:600; color:var(--ink); }
+.dg-node-top .pill { margin-left:auto; }
+.dg-node p { margin:var(--s1) 0 0; font-size:var(--fs-label); color:var(--muted); line-height:1.45; }
+.dg-lines { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible; z-index:0; }
+.dg-edge { fill:none; stroke:var(--faint); stroke-width:1.5; }
+.dg-edge.main { stroke:var(--accent); stroke-width:1.8; }
+.dg-edge.pending { stroke-dasharray:5 4; }
+.dg-ah { fill:var(--faint); } .dg-ah.main { fill:var(--accent); }
+.dg-steps { margin-top:var(--s5); }
+.dg-steps > summary { list-style:none; display:inline-flex; align-items:center; gap:var(--s2); cursor:pointer; border:1px solid var(--line-strong);
+  border-radius:var(--r-sm); padding:.35rem .75rem; font-size:var(--fs-label); font-weight:600; color:var(--ink); background:var(--panel); }
+.dg-steps > summary::-webkit-details-marker { display:none; }
+.dg-steps > summary::before { content:"+"; font-family:var(--mono); color:var(--muted); width:.8em; text-align:center; }
+.dg-steps[open] > summary::before { content:"\2013"; }
+.dg-step-list { margin:var(--s4) 0 0; padding-left:1.9rem; }
+.dg-step-list li { font-size:var(--fs-body); color:var(--muted); margin:var(--s2) 0; }
+.dg-step-list li b { color:var(--ink); font-weight:600; }
+.dg-step-list li.pending { opacity:.8; }
+@media (max-width:759px){ .dg { grid-template-columns:1fr; gap:var(--s5); } .dg-lines { display:none; } }
+
 /* Owner chip (under the task title) */
 .owner { margin:var(--s2) 0 0; }
 .owner-chip { display:inline-block; font-size:var(--fs-label); font-weight:600; padding:.22em .7em;

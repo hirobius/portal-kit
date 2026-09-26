@@ -34,6 +34,10 @@
  *   queue    {id,eyebrow,title,note,items[],footNote}               — ordered list
  *   cards    {id,eyebrow,title,columns,items[{n,title,text}]}       — value cards
  *   request  {id,eyebrow,title,note,placeholder,email,subject}      — mailto feedback box
+ *   diagram  {id,eyebrow,title,note,lanes[{title,nodes[{id,title,desc,status:{label,kind}}]}],
+ *            edges[{from,to,label,style:"main"|"pending"}],stepsTitle}
+ *            — lanes of node cards joined by arrows (drawn when lanes sit side
+ *            by side), plus the same flow as a numbered list of steps.
  *   updates  {id,eyebrow,title,items[{date,note}]}
  *   accordions {id,eyebrow,title,items[{title,bodyId}]}
  *   docs     {id,eyebrow,title,note,items[{title,desc,bodyId}]}
@@ -630,6 +634,88 @@
     return s;
   }
 
+  /* Diagram: lanes of nodes, arrows drawn over them from live positions. */
+  function renderDiagram(sec) {
+    var s = sectionShell(sec);
+    var lanes = arr(sec.lanes), edges = arr(sec.edges), byId = {};
+    var fig = el('div', 'dg'); fig.style.setProperty('--dg-lanes', String(Math.max(lanes.length, 1)));
+    lanes.forEach(function (ln) {
+      var lane = el('div', 'dg-lane');
+      if (ln.title) lane.appendChild(el('p', 'dg-lane-title', ln.title));
+      arr(ln.nodes).forEach(function (nd) {
+        var node = el('div', 'dg-node' + (nd.key ? ' key' : ''));
+        var top = el('div', 'dg-node-top');
+        top.appendChild(el('b', null, nd.title || ''));
+        if (nd.status) top.appendChild(el('span', statusPillClass(nd.status.kind), nd.status.label || ''));
+        node.appendChild(top);
+        if (nd.desc) { var d = el('p'); d.innerHTML = inlineHTML(nd.desc); node.appendChild(d); }
+        if (nd.id) byId[nd.id] = { el: node, title: nd.title || nd.id };
+        lane.appendChild(node);
+      });
+      fig.appendChild(lane);
+    });
+    var svg = document.createElementNS(SVGNS, 'svg');
+    svg.setAttribute('class', 'dg-lines'); svg.setAttribute('aria-hidden', 'true');
+    fig.appendChild(svg);
+    s.appendChild(fig);
+
+    var steps = el('details', 'dg-steps');
+    if (window.matchMedia && window.matchMedia('(max-width: 759px)').matches) steps.setAttribute('open', '');
+    var sum = document.createElement('summary');
+    sum.appendChild(el('span', 's-closed', sec.stepsTitle || 'See each step in words'));
+    sum.appendChild(el('span', 's-open', 'Hide the steps'));
+    steps.appendChild(sum);
+    var ol = el('ol', 'dg-step-list');
+    edges.forEach(function (e) {
+      var a = byId[e.from], b = byId[e.to]; if (!a || !b) return;
+      var li = el('li', e.style === 'pending' ? 'pending' : null);
+      li.innerHTML = '<b>' + inlineHTML(a.title) + ' → ' + inlineHTML(b.title) + '</b>' + (e.label ? ': ' + inlineHTML(e.label) : '');
+      ol.appendChild(li);
+    });
+    steps.appendChild(ol);
+    if (ol.children.length) s.appendChild(steps);
+
+    function mk(tag, attrs) { var n = document.createElementNS(SVGNS, tag); for (var k in attrs) n.setAttribute(k, attrs[k]); return n; }
+    function draw() {
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      var box = fig.getBoundingClientRect();
+      if (!box.width || !(window.matchMedia && window.matchMedia('(min-width: 760px)').matches)) return;
+      svg.setAttribute('viewBox', '0 0 ' + box.width + ' ' + box.height);
+      var defs = mk('defs', {});
+      ['main', 'plain'].forEach(function (k) {
+        var m = mk('marker', { id: 'dg-ah-' + k + '-' + (sec.id || 'x'), viewBox: '0 0 10 10', refX: '9', refY: '5', markerWidth: '7', markerHeight: '7', orient: 'auto-start-reverse' });
+        m.appendChild(mk('path', { d: 'M0,0 L10,5 L0,10 z', 'class': 'dg-ah ' + k }));
+        defs.appendChild(m);
+      });
+      svg.appendChild(defs);
+      edges.forEach(function (e) {
+        var a = byId[e.from], b = byId[e.to]; if (!a || !b) return;
+        var ra = a.el.getBoundingClientRect(), rb = b.el.getBoundingClientRect();
+        var x1, y1, x2, y2, d;
+        if (Math.abs(ra.left - rb.left) < 4) {          // same lane: down the side
+          var goDown = rb.top > ra.top;
+          x1 = ra.right - box.left - 14; y1 = (goDown ? ra.bottom : ra.top) - box.top;
+          x2 = rb.right - box.left - 14; y2 = (goDown ? rb.top : rb.bottom) - box.top;
+          d = 'M' + x1 + ',' + y1 + ' L' + x2 + ',' + y2;
+        } else {
+          var right = rb.left > ra.left;
+          x1 = (right ? ra.right : ra.left) - box.left; y1 = ra.top + ra.height / 2 - box.top;
+          x2 = (right ? rb.left : rb.right) - box.left; y2 = rb.top + rb.height / 2 - box.top;
+          var dx = (x2 - x1) / 2;
+          d = 'M' + x1 + ',' + y1 + ' C' + (x1 + dx) + ',' + y1 + ' ' + (x2 - dx) + ',' + y2 + ' ' + x2 + ',' + y2;
+        }
+        var k = e.style === 'main' ? 'main' : 'plain';
+        svg.appendChild(mk('path', { d: d, 'class': 'dg-edge ' + k + (e.style === 'pending' ? ' pending' : ''), 'marker-end': 'url(#dg-ah-' + k + '-' + (sec.id || 'x') + ')' }));
+      });
+    }
+    var t = null;
+    function schedule() { if (t) cancelAnimationFrame(t); t = requestAnimationFrame(draw); }
+    window.addEventListener('resize', schedule, { passive: true });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
+    setTimeout(schedule, 0);
+    return s;
+  }
+
   function renderRequest(sec) {
     var s = sectionShell(sec);
     var box = el('div', 'request');
@@ -807,7 +893,7 @@
   var RENDERERS = {
     callout: renderCallout, status: renderStatus, updates: renderUpdates,
     accordions: renderAccordions, docs: renderDocs, tasks: renderTasks, list: renderList,
-    queue: renderQueue, cards: renderCards, request: renderRequest
+    queue: renderQueue, cards: renderCards, request: renderRequest, diagram: renderDiagram
   };
 
   function render() {
