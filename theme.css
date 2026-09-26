@@ -450,6 +450,11 @@ details.task.collapsible .task-body { padding-top:var(--s1); }
 .dg-hint { display:none; margin:0 0 var(--s2); font-size:var(--fs-label); color:var(--faint); }
 @media (max-width:759px){ .dg { min-width:640px; gap:var(--s5); } .dg-hint { display:block; } }
 
+/* Mermaid section (type "mermaid") */
+.mmd { background:var(--panel); border:1px solid var(--line); border-radius:var(--r-lg); padding:var(--s5) var(--s4); display:flex; justify-content:center; overflow-x:auto; }
+.mmd svg { max-width:100%; height:auto; }
+.mmd-loading { margin:0; font-size:var(--fs-label); color:var(--faint); }
+
 /* Owner chip (under the task title) */
 .owner { margin:var(--s2) 0 0; }
 .owner-chip { display:inline-block; font-size:var(--fs-label); font-weight:600; padding:.22em .7em;
