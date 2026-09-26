@@ -34,6 +34,11 @@
  *   queue    {id,eyebrow,title,note,items[],footNote}               — ordered list
  *   cards    {id,eyebrow,title,columns,items[{n,title,text}]}       — value cards
  *   request  {id,eyebrow,title,note,placeholder,email,subject}      — mailto feedback box
+ *   mermaid  {id,eyebrow,title,note,code,codeNarrow,steps[],stepsTitle}
+ *            — a Mermaid diagram (self-hosted, loaded only on pages that use
+ *            it). codeNarrow (optional) is used under 760px, e.g. a top-down
+ *            version for phones. Colors come from the kit theme; use
+ *            `class <node> ok|wait|pending|key` for status styling.
  *   diagram  {id,eyebrow,title,note,lanes[{title,nodes[{id,title,desc,status:{label,kind}}]}],
  *            edges[{from,to,label,style:"main"|"pending"}],stepsTitle}
  *            — lanes of node cards joined by arrows, plus the same flow as a
@@ -47,6 +52,11 @@
  */
 (function () {
   var SVGNS = 'http://www.w3.org/2000/svg';
+  // Where this script was loaded from, so vendored files load from the same host.
+  var KIT_BASE = (function () {
+    var src = document.currentScript && document.currentScript.src;
+    return src ? src.replace(/[^/]*$/, '') : '';
+  })();
   var STATES = { 'done': 'Done', 'in-progress': 'In progress', 'upcoming': 'Upcoming' };
   var ICONS = {
     chevron:  ['m9 18 6-6-6-6'],
@@ -720,6 +730,83 @@
     return s;
   }
 
+  /* Mermaid: text-defined diagrams, drawn with the vendored Mermaid build. */
+  var MERMAID_SRC = 'vendor/mermaid-11.17.2.min.js';
+  var mermaidLoad = null;
+  function loadMermaid() {
+    if (window.mermaid) return Promise.resolve(window.mermaid);
+    if (!mermaidLoad) mermaidLoad = new Promise(function (resolve, reject) {
+      var sc = document.createElement('script');
+      sc.src = KIT_BASE + MERMAID_SRC; sc.async = true;
+      sc.onload = function () { resolve(window.mermaid); };
+      sc.onerror = function () { reject(new Error('mermaid failed to load')); };
+      document.head.appendChild(sc);
+    });
+    return mermaidLoad;
+  }
+  function tok(name, fallback) {
+    var v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+  function renderMermaid(sec) {
+    var s = sectionShell(sec);
+    var box = el('div', 'mmd');
+    box.setAttribute('role', 'img');
+    box.setAttribute('aria-label', sec.title || 'Diagram');
+    box.appendChild(el('p', 'mmd-loading', 'Loading diagram…'));
+    s.appendChild(box);
+    if (arr(sec.steps).length) {
+      var steps = el('details', 'dg-steps');
+      var sum = document.createElement('summary');
+      sum.appendChild(el('span', 's-closed', sec.stepsTitle || 'See each step in words'));
+      sum.appendChild(el('span', 's-open', 'Hide the steps'));
+      steps.appendChild(sum);
+      var ol = el('ol', 'dg-step-list');
+      sec.steps.forEach(function (st) { var li = el('li'); li.innerHTML = inlineHTML(st); ol.appendChild(li); });
+      steps.appendChild(ol);
+      s.appendChild(steps);
+    }
+    var n = 0, narrowMq = window.matchMedia ? window.matchMedia('(max-width: 759px)') : null;
+    function draw() {
+      loadMermaid().then(function (mermaid) {
+        var ink = tok('--ink', '#1a1a1a'), muted = tok('--muted', '#555'), line = tok('--line-strong', '#bbb');
+        var panel = tok('--panel', '#fff'), subtle = tok('--subtle', '#f4f4f4'), accent = tok('--accent', '#111');
+        var okBg = tok('--ok-bg', '#e6f4ea'), ok = tok('--ok', '#1e7a46'), warnBg = tok('--warn-bg', '#fdf1dc'), warn = tok('--warn', '#9a6512');
+        mermaid.initialize({
+          startOnLoad: false, securityLevel: 'strict', theme: 'base',
+          fontFamily: tok('--sans', 'system-ui, sans-serif'),
+          flowchart: { curve: 'basis', htmlLabels: true, padding: 12, nodeSpacing: 28, rankSpacing: 44 },
+          themeVariables: {
+            fontSize: '14px', primaryColor: panel, primaryTextColor: ink, primaryBorderColor: line,
+            lineColor: muted, secondaryColor: subtle, tertiaryColor: subtle, clusterBkg: subtle,
+            clusterBorder: tok('--line', '#ddd'), edgeLabelBackground: panel, titleColor: muted
+          }
+        });
+        var code = (narrowMq && narrowMq.matches && sec.codeNarrow) ? sec.codeNarrow : sec.code;
+        code = [].concat(code || []).join('\n') + '\n' +
+          'classDef ok fill:' + okBg + ',stroke:' + ok + ',color:' + ink + ';\n' +
+          'classDef wait fill:' + warnBg + ',stroke:' + warn + ',color:' + ink + ';\n' +
+          'classDef pending fill:' + panel + ',stroke:' + muted + ',stroke-dasharray:5 4,color:' + ink + ';\n' +
+          'classDef key fill:' + panel + ',stroke:' + accent + ',stroke-width:2px,color:' + ink + ';\n';
+        return mermaid.render('mmd-' + (sec.id || 'x') + '-' + (++n), code);
+      }).then(function (out) {
+        box.innerHTML = out.svg;
+        var svg = box.querySelector('svg');
+        if (svg) { svg.removeAttribute('height'); svg.style.maxWidth = '100%'; svg.style.height = 'auto'; }
+      }).catch(function (e) {
+        box.innerHTML = '';
+        box.appendChild(el('p', 'mmd-loading', 'The diagram could not load. The steps below describe the same flow.'));
+        console.error('portal-kit mermaid:', e);
+      });
+    }
+    draw();
+    if (narrowMq && sec.codeNarrow) (narrowMq.addEventListener ? narrowMq.addEventListener('change', draw) : narrowMq.addListener(draw));
+    var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+    if (dark) (dark.addEventListener ? dark.addEventListener('change', draw) : dark.addListener(draw));
+    if (window.MutationObserver) new MutationObserver(draw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return s;
+  }
+
   function renderRequest(sec) {
     var s = sectionShell(sec);
     var box = el('div', 'request');
@@ -897,7 +984,7 @@
   var RENDERERS = {
     callout: renderCallout, status: renderStatus, updates: renderUpdates,
     accordions: renderAccordions, docs: renderDocs, tasks: renderTasks, list: renderList,
-    queue: renderQueue, cards: renderCards, request: renderRequest, diagram: renderDiagram
+    queue: renderQueue, cards: renderCards, request: renderRequest, diagram: renderDiagram, mermaid: renderMermaid
   };
 
   function render() {
