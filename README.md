@@ -9,8 +9,14 @@ reinvention.
 ## What's here
 
 - **`theme.css`** — the whole design system: Satoshi type (embedded as a data
-  URI so it works cross-origin), neutral palette, status pills, owner chips,
-  elevated cards, light/dark, responsive. Edit this to restyle every portal.
+  URI so it works cross-origin), status pills, owner chips, elevated cards,
+  light/dark, responsive. Its color/spacing/radius/accent tokens are an **alias
+  layer over the Hirobius Design System** (see Design tokens below); restyle the
+  brand in hds, restyle portal-kit's own components here.
+- **`vendor/hds-tokens.css`** — the hds token source, vendored (generated; do not
+  hand-edit). `theme.css` `@import`s it.
+- **`scripts/`** — `check-tokens.mjs` (integrity gate) and `sync-hds-tokens.mjs`
+  (re-vendor from hds); see Design tokens.
 - **`portal.js`** — the shared renderer. It builds the entire page from a
   client's JSON data block, so structure and behavior are shared too.
 - **`index.html`** — a live demo rendering sample data through the kit.
@@ -33,6 +39,24 @@ A client page owns only its content. Everything else comes from here:
 Add a `<main id="fallback">…</main>` with a plain "loading" message; the renderer
 removes it on load, so it only shows if the kit can't reach the page. See
 `clients/EXAMPLE-client-page.html`.
+
+## Design tokens (from the Hirobius Design System)
+
+portal-kit no longer hand-authors its palette. The one DTCG source in
+[`hirobius/hds`](https://github.com/hirobius/hds) drives every surface:
+
+- `hds` generates `tokens.css`; it's vendored here at **`vendor/hds-tokens.css`**
+  (with a provenance header — never hand-edit it).
+- **`theme.css`** `@import`s that file and maps portal-kit's compact names onto it,
+  e.g. `--ink: var(--semantic-color-content-primary)`, `--accent: var(--semantic-accent-rest)`.
+  Change the brand in hds and it sweeps every client portal on next load.
+- **Dark mode** follows hds's `[data-theme="dark"]` attribute; `portal.js` sets it
+  from the viewer's system preference (or the theme toggle). Aliased tokens flip
+  automatically; only a few portal-local extras (owner chips, the translucent
+  scrim, the fixed font-size ramp) carry their own dark values.
+- **Re-sync** when hds changes: `node scripts/sync-hds-tokens.mjs` (needs
+  `GITHUB_TOKEN` with hds read). **`node scripts/check-tokens.mjs`** guards that
+  every referenced hds var resolves; CI runs it in `.github/workflows/token-drift.yml`.
 
 ## Spin up a new client portal
 

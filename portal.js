@@ -264,9 +264,12 @@
   var THEME_KEY = 'portal-theme';
   var THEMES = ['system', 'light', 'dark'];
   function readTheme() { try { var v = localStorage.getItem(THEME_KEY); return THEMES.indexOf(v) > -1 ? v : 'system'; } catch (e) { return 'system'; } }
+  function systemDark() { return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches); }
+  // hds drives dark mode via an explicit [data-theme] attribute (its token CSS has no
+  // prefers-color-scheme block), so "system" is resolved to a concrete value here.
   function applyTheme(t) {
-    if (t === 'system') document.documentElement.removeAttribute('data-theme');
-    else document.documentElement.setAttribute('data-theme', t);
+    var resolved = (t === 'system') ? (systemDark() ? 'dark' : 'light') : t;
+    document.documentElement.setAttribute('data-theme', resolved);
   }
   function themeButton() {
     var btn = el('button', 'theme-toggle'); btn.type = 'button';
@@ -287,6 +290,13 @@
     return btn;
   }
   applyTheme(readTheme());
+  // Keep "system" mode in sync when the OS theme changes.
+  if (window.matchMedia) {
+    var _sysMq = window.matchMedia('(prefers-color-scheme: dark)');
+    var _onSys = function () { if (readTheme() === 'system') applyTheme('system'); };
+    if (_sysMq.addEventListener) _sysMq.addEventListener('change', _onSys);
+    else if (_sysMq.addListener) _sysMq.addListener(_onSys);
+  }
 
   /* --- Copy for AI ---------------------------------------------------------
      Two modes:
