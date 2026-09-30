@@ -1,0 +1,33 @@
+name: token drift
+
+# Guards the vendored hds token layer (vendor/hds-tokens.css) that theme.css aliases.
+on:
+  pull_request:
+    paths: ['theme.css', 'vendor/hds-tokens.css', 'scripts/check-tokens.mjs', 'scripts/sync-hds-tokens.mjs']
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 14 * * 1' # Mondays — nudge if the vendored copy has drifted from hds
+
+jobs:
+  integrity:
+    # Always runs; no cross-repo auth needed. Fails on dangling hds refs or a
+    # tampered vendor header.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: node scripts/check-tokens.mjs
+
+  staleness:
+    # Best-effort: only meaningful when an hds-read token is configured. Skips
+    # cleanly otherwise so a missing secret never reds the build.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: node scripts/sync-hds-tokens.mjs --check
+        env:
+          GITHUB_TOKEN: ${{ secrets.HDS_READ_TOKEN }}
