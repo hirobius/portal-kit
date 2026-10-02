@@ -17,6 +17,22 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ---
 
+## v2 — 2026-10-02
+Thin-client support + content features. Backward-compatible with v1 pages
+(every change is additive; absent data renders exactly as before).
+
+- **Thin client:** the renderer self-injects `theme.css` from its own release
+  dir when the page doesn't already link it, so a client page can ship only its
+  data block + one `<script src=".../releases/v2/portal.js">`.
+- **Opt-in analytics:** `"analytics": "vercel"` injects the Vercel insights
+  beacon from the client's own origin (no inline snippet in the page).
+- **Document archive:** `"archived": true` (+ optional `archivedOn`,
+  `archivedReason`) moves a doc into a collapsed "Archive (n)" group.
+- **Status-feed ledger:** each update may carry a `"tag"` and
+  `"attachments": [{ "label", "bodyId" | "file" | "href" }]` — a `bodyId` opens
+  that document in the reader; `file`/`href` links out.
+- **Document card icon** now sits above the title.
+
 ## v1 — 2026-10-02
 Baseline snapshot, byte-identical to the then-current root `portal.js` +
 `theme.css` + `vendor/`. No behavior change; it exists so the live client pages
