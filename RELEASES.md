@@ -17,6 +17,32 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ---
 
+## v7 — 2026-10-05
+One framework for every client page: the kit absorbs what clients were hand-rolling.
+- **One checklist pattern.** A `status` item may carry `owner`, `fields[]`,
+  `steps[]` (+ `stepsTitle`), `bodyId`, `open`; it then opens on tap inside the
+  same simple checklist (chevron right, detail indented under the label). An
+  item `id` becomes a deep-link anchor. A phase can take a `note`. Item state
+  comes only from data — no device-local "To do" toggles. `tasks` and `list`
+  still render but are **legacy**; new pages use `status`.
+- **No eyebrows.** Section `eyebrow` (and `decisions.eyebrow`) is no longer
+  rendered; field labels and link groups are sentence case, not ALL CAPS.
+- **One header, one footer.** The header is always `Private • Updated <date>`,
+  h1, subtitle (`header.eyebrow:false` / `livelyHeading` ignored). The footer is
+  Copy page → "Questions? <contact.email>" → theme toggle; `footer.lines` renders
+  only when there's no `contact.email`.
+- **Doc cards** put the icon above the title by default (Access Tech's local
+  override is no longer needed).
+- **Shared tools** (`releases/v7/tools/`, Node built-ins): `check-portal.mjs`
+  (JSON valid, bodyId refs, no page-local CSS/scripts, single pinned release,
+  known section types, secrets, `--strict` fails on legacy keys) and
+  `sync-links.mjs` (writes `links.json` client entries into `#portal-data`, for
+  `sections` or legacy pages). Client repos vendor the copy matching their pin.
+- Canonical page: `sections` → `status` → `updates` → `links` → `docs`, then
+  optional kit blocks (`assist`, `cards`, `request`, `mermaid`).
+- Additive for data: v6 pages render under v7, minus eyebrows/legacy header and
+  footer lines.
+
 ## v6 — 2026-10-05
 - **Links section.** Legacy-shaped pages with a top-level `links` array get a
   **Links** section above Documents: rows of `{title, url, summary?, section?}`,

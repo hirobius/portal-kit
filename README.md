@@ -22,13 +22,17 @@ reinvention.
 
 ## How a client page uses it
 
-A client page owns only its content. Everything else comes from here:
+A client page is **data only**. Everything else comes from a pinned release:
 
 ```html
-<link rel="stylesheet" href="https://<portal-kit-host>/theme.css" />
+<link rel="stylesheet" href="https://portal-kit-adrian-6234s-projects.vercel.app/releases/v7/theme.css" />
 <script type="application/json" id="portal-data"> { ...client data... } </script>
-<script src="https://<portal-kit-host>/portal.js" defer></script>
+<script src="https://portal-kit-adrian-6234s-projects.vercel.app/releases/v7/portal.js" defer></script>
 ```
+
+No page-local CSS or scripts: if a client needs something the kit can't
+express, add it to the kit and cut a release. `tools/check-portal.mjs` enforces
+this (run it in the client repo; `--strict` also fails legacy keys).
 
 Add a `<main id="fallback">…</main>` with a plain "loading" message; the renderer
 removes it on load, so it only shows if the kit can't reach the page. See
@@ -37,10 +41,13 @@ removes it on load, so it only shows if the kit can't reach the page. See
 ## Spin up a new client portal
 
 1. Copy `clients/EXAMPLE-client-page.html` into the new client's repo as
-   `index.html`; point the two `<...portal-kit-host...>` URLs at this deployed kit.
-2. Fill in the `#portal-data` JSON — client name, subtitle, and the `sections`
-   you want (see below). Put long-form documents in
+   `index.html` (already pinned to the latest release), and copy
+   `releases/vN/tools/*.mjs` into the repo's `scripts/kit/`.
+2. Fill in `#portal-data` in the **canonical order**: `status` → `updates` →
+   `links` → `docs`, then optional kit blocks. Put the client's links in
+   `links.json` and run `node scripts/kit/sync-links.mjs`. Put long-form documents in
    `<script type="text/markdown" id="...">` blocks and reference them by `bodyId`.
+   Run `node scripts/kit/check-portal.mjs --strict` before every push.
 3. Deploy the client repo (its own Vercel project + password gate). Done — it
    inherits the shared look, the theme switcher, and Copy-for-AI automatically.
 
@@ -53,13 +60,11 @@ Top level:
   "client": "Client Name",
   "subtitle": "optional subtitle",
   "lastUpdated": "2026-01-01",
-  "header":   { "eyebrow": false, "livelyHeading": true },
   "progress": true,
   "parties":  [{ "label": "Client", "cls": "a" }, { "label": "Hirobius", "cls": "b" }],
   "copyForAI":{ "mode": "generic", "placement": ["top", "footer"] },
   "sections": [ "...ordered, typed sections..." ],
-  "contact":  { "name": "", "email": "you@example.com" },
-  "footer":   { "lines": ["Prepared by …", "City, ST"] }
+  "contact":  { "name": "", "email": "you@example.com" }
 }
 ```
 
@@ -69,7 +74,8 @@ portal.
 
 ### Section types
 
-Each section is `{ "type": "...", "id": "...", "title": "...", ... }`. `id` +
+Each section is `{ "type": "...", "id": "...", "title": "...", ... }`. No
+`eyebrow` (v7 doesn't render it). `id` +
 `title` feed the auto right-rail table of contents (shown ≥1280px wide when there
 are ≥4 navigable sections). `status` is always `"done" | "in-progress" | "upcoming"`.
 
@@ -77,9 +83,10 @@ are ≥4 navigable sections). `status` is always `"done" | "in-progress" | "upco
 |---|---|
 | `assist` | intro block ("Start here") with a Copy-for-AI CTA button |
 | `callout` | a pulled-out note; `variant:"alert"` adds the amber warning style |
-| `status` | Project Status — phase cards with checklist items |
-| `tasks` | grouped setup task-cards: `subgroups[]`, each a subhead + optional `decisions` cards + `tasks[]`. A task has `id` (code), `title`, `owner` (→ chip), `tags[]`, `fields[]`, `steps[]`, and a To-do/Done toggle |
-| `list` | a bordered list of rows (`name`, `sub`, `status:{label,kind}`, `note`) — used for build status and roadmaps. `kind` is `built` / `wait` / plain |
+| `status` | Project Status — phase cards with checklist items. **The one checklist pattern (v7):** an item `{id,label,status,desc}` may add `owner`, `fields[]`, `steps[]`, `bodyId` and then opens on tap. A phase may add `note`. |
+| `links` | link rows grouped by `section`, written from `links.json` by `tools/sync-links.mjs` |
+| `tasks` | **legacy (use `status`)** — grouped setup task-cards: `subgroups[]`, each a subhead + optional `decisions` cards + `tasks[]`. A task has `id` (code), `title`, `owner` (→ chip), `tags[]`, `fields[]`, `steps[]`, and a To-do/Done toggle |
+| `list` | **legacy (use `status`)** — a bordered list of rows (`name`, `sub`, `status:{label,kind}`, `note`) — used for build status and roadmaps. `kind` is `built` / `wait` / plain |
 | `queue` | an ordered "up next" list |
 | `cards` | value cards (`columns: 2` or `3`) |
 | `request` | a custom-request box that opens a pre-filled `mailto:` |
