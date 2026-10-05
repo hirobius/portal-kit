@@ -40,6 +40,9 @@ One framework for every client page: the kit absorbs what clients were hand-roll
   `sections` or legacy pages). Client repos vendor the copy matching their pin.
 - Canonical page: `sections` → `status` → `updates` → `links` → `docs`, then
   optional kit blocks (`assist`, `cards`, `request`, `mermaid`).
+- Patched in place before any client pinned it: a closed "Read the draft" toggle
+  inside an open checklist row read "Hide" (show/hide labels now key off their own
+  `<details>`, not any open ancestor).
 - Additive for data: v6 pages render under v7, minus eyebrows/legacy header and
   footer lines.
 
