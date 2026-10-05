@@ -17,6 +17,14 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ---
 
+## v3 — 2026-10-04
+- **"Copy page" button** replaces "Copy for AI": compact outlined button with a
+  clipboard icon (top + footer), the pattern AI-friendly doc sites use. No AI
+  note under it unless a page sets `copyForAI.note`. `copyForAI.label` still
+  overrides the text. Assist-block CTAs (payload mode) unchanged.
+- **Fix:** copy now includes the full page on legacy-shaped pages (top-level
+  `phases`/`updates`/`docs`). Before, it copied only the title.
+
 ## v2 — 2026-10-02
 Thin-client support + content features. Backward-compatible with v1 pages
 (every change is additive; absent data renders exactly as before).
