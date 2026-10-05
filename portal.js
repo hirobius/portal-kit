@@ -305,6 +305,29 @@
        generic  — compile the whole rendered portal into one Markdown blob.
        payload  — copy a named JSON block verbatim (e.g. a structured intake
                   payload whose own instructions tell the assistant what to do). */
+  /* v3: any section type the text builder doesn't model is copied from its
+     rendered DOM, so "Copy page" always gets the whole page. */
+  var SEC_NODES = [];
+  function nodeFor(sec) { for (var i = 0; i < SEC_NODES.length; i++) if (SEC_NODES[i].sec === sec) return SEC_NODES[i].node; return null; }
+  var SKIP_TAGS = { BUTTON: 1, SCRIPT: 1, STYLE: 1, SVG: 1, svg: 1, INPUT: 1, TEXTAREA: 1, NAV: 1 };
+  function domToMd(root) {
+    var out = [];
+    function txt(n) { return (n.innerText || n.textContent || '').replace(/\s+/g, ' ').trim(); }
+    function walk(n) {
+      if (n.nodeType !== 1 || SKIP_TAGS[n.tagName]) return;
+      if (n.classList && (n.classList.contains('page-actions') || n.classList.contains('sr-only'))) return;
+      var t = n.tagName;
+      if (/^H[1-6]$/.test(t)) { var lv = Math.min(+t[1] + 1, 6); out.push('', new Array(lv + 1).join('#') + ' ' + txt(n)); return; }
+      if (t === 'LI') { out.push('- ' + txt(n)); return; }
+      if (t === 'P' || t === 'BLOCKQUOTE' || t === 'PRE') { var v = txt(n); if (v) out.push('', v); return; }
+      var kids = n.children, hasBlock = false;
+      for (var i = 0; i < kids.length; i++) if (!/^(SPAN|A|B|I|EM|STRONG|CODE|BR|SMALL|LABEL)$/.test(kids[i].tagName)) { hasBlock = true; break; }
+      if (!hasBlock) { var w = txt(n); if (w) out.push('', w); return; }
+      for (var j = 0; j < kids.length; j++) walk(kids[j]);
+    }
+    walk(root);
+    return out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
   function textForAI(data) {
     var name = data.client || 'Client';
     var L = ['# ' + name + ' — Project Portal', ''];
@@ -332,6 +355,9 @@
       } else if (sec.type === 'docs') {
         L.push('', '---', '', '# ' + (sec.title || 'Documents'));
         arr(sec.items).forEach(function (dc) { L.push('', '---', '', mdSource(dc.bodyId).trim()); });
+      } else {
+        var nd = nodeFor(sec);
+        if (nd) { var md = domToMd(nd); if (md) L.push('', '---', '', md); }
       }
     });
     if (data.contact && data.contact.email) {
@@ -384,10 +410,10 @@
   // sites use. Copies the whole page as Markdown; no AI-specific framing.
   function copyPageButton(data, cfg) {
     var btn = el('button', 'page-copy'); btn.type = 'button';
-    var LBL = (cfg && cfg.label) || 'Copy page';
+    var LBL = (cfg && cfg.mode !== 'payload' && cfg.label) || 'Copy page';
     btn.setAttribute('aria-label', 'Copy this page as text');
     setLabel(btn, 'clipboard', LBL);
-    wireCopy(btn, function () { return copyText(data, cfg); }, { idle: LBL, ok: 'Copied', manual: 'Press Ctrl/⌘+C to copy' });
+    wireCopy(btn, function () { return textForAI(data); }, { idle: LBL, ok: 'Copied', manual: 'Press Ctrl/⌘+C to copy' });
     btn._idleIcon = 'clipboard';
     return btn;
   }
@@ -1095,7 +1121,7 @@
     }
 
     // Top Copy-for-AI (generic mode only)
-    if (cfg.mode !== 'payload' && (cfg.placement || []).indexOf('top') > -1) main.appendChild(aiBlock(data, cfg, 'top-ai'));
+    if ((cfg.placement || []).indexOf('top') > -1) main.appendChild(aiBlock(data, cfg, 'top-ai'));
 
     // Sections
     var sections = arr(data.sections).length ? data.sections : legacySections(data);
@@ -1104,14 +1130,14 @@
       var node;
       if (sec.type === 'assist') node = renderAssist(sec, data, cfg);
       else { var fn = RENDERERS[sec.type]; if (!fn) return; node = fn(sec, ctx); }
-      main.appendChild(node);
+      main.appendChild(node); SEC_NODES.push({ sec: sec, node: node });
       if (sec.id && (sec.type === 'assist' || sec.navTitle || sec.title)) nav.push({ id: sec.id, label: sec.navTitle || sec.title || 'Start here' });
       if (sec.type === 'tasks') arr(sec.subgroups).forEach(function (g) { if (g.id && g.title) nav.push({ id: g.id, label: g.title, sub: true }); });
     });
 
     // Footer
     var footer = el('footer');
-    if (cfg.mode !== 'payload' && (cfg.placement || ['footer']).indexOf('footer') > -1) footer.appendChild(aiBlock(data, cfg));
+    if ((cfg.placement || ['footer']).indexOf('footer') > -1) footer.appendChild(aiBlock(data, cfg));
     var email = data.contact && data.contact.email;
     if (email) {
       var fc = el('p', 'foot-contact'); fc.appendChild(document.createTextNode('Questions? '));
