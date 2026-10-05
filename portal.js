@@ -252,10 +252,18 @@
     bar.appendChild(el('div', 'reader-title', title));
     var close = el('button', 'reader-close'); close.setAttribute('aria-label', 'Close');
     close.appendChild(icon('close')); close.addEventListener('click', closeReader);
-    if (mdSource(bodyId)) bar.appendChild(docCopyButton(title, bodyId, 'page-copy reader-copy', 'Copy document'));
     bar.appendChild(close);
     var body = el('div', 'reader-body');
     var article = el('article', 'md'); article.innerHTML = mdToHtml(mdSource(bodyId));
+    // v5: Copy document sits under the document's heading, like Copy page on
+    // the main page (top of the article if the doc has no leading heading).
+    if (mdSource(bodyId)) {
+      var acts = el('div', 'page-actions reader-actions');
+      acts.appendChild(docCopyButton(title, bodyId, 'page-copy', 'Copy document'));
+      var h = article.firstElementChild;
+      if (h && /^H[12]$/.test(h.tagName)) h.insertAdjacentElement('afterend', acts);
+      else article.insertBefore(acts, article.firstChild);
+    }
     body.appendChild(article);
     overlay.appendChild(bar); overlay.appendChild(body);
     overlay.addEventListener('click', function (e) { if (e.target === overlay) closeReader(); });

@@ -19,8 +19,8 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ## v5 — 2026-10-05
 - **Copy a single document.** Every document card gets a secondary **Copy**
-  button beside **Read**, and the document reader gets **Copy document** next
-  to Close. Both copy that one document as Markdown (the same text Copy page
+  button beside **Read**, and each document gets **Copy document** just under
+  its heading in the reader (same spot as Copy page on the main page). Both copy that one document as Markdown (the same text Copy page
   includes for it), so a client can grab one doc and paste it anywhere. No data
   change needed: any doc with a `bodyId` gets both buttons automatically; a doc
   with no body gets neither. Additive; v4 pages render unchanged.
