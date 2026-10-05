@@ -17,6 +17,14 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ---
 
+## v6 — 2026-10-05
+- **Links section.** Legacy-shaped pages with a top-level `links` array get a
+  **Links** section above Documents: rows of `{title, url, summary?, section?}`,
+  grouped by `section` when there's more than one. The array is generated from
+  the client repo's `links.json` (see access-tech-internal `scripts/sync-links.mjs`),
+  never hand-edited. Copy page includes the links. Additive; v5 pages render
+  unchanged.
+
 ## v5 — 2026-10-05
 - **Copy a single document.** Every document card gets a secondary **Copy**
   button beside **Read**, and each document gets **Copy document** just under
