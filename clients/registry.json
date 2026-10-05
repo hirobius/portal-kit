@@ -1,0 +1,21 @@
+{
+  "$comment": "Every live client page built on the kit: which repo, which pinned release, which page shape. tools/check-clients.mjs compares this to what each repo's default branch actually pins. Update a row in the same PR that moves a client.",
+  "clients": [
+    {
+      "client": "Access Tech",
+      "repo": "hirobius/access-tech-internal",
+      "pages": ["index.html"],
+      "url": "https://access-tech-internal.vercel.app",
+      "release": "v7",
+      "layout": "canonical"
+    },
+    {
+      "client": "Lilac Insurance Group",
+      "repo": "hirobius/lilac",
+      "pages": ["index.html", "how-it-works.html"],
+      "url": "https://lilac-insure.vercel.app",
+      "release": "v7",
+      "layout": "canonical"
+    }
+  ]
+}
