@@ -48,6 +48,9 @@ removes it on load, so it only shows if the kit can't reach the page. See
    `links.json` and run `node scripts/kit/sync-links.mjs`. Put long-form documents in
    `<script type="text/markdown" id="...">` blocks and reference them by `bodyId`.
    Run `node scripts/kit/check-portal.mjs --strict` before every push.
+4. Add a row to `clients/registry.json` (repo, pages, release, layout).
+   `GITHUB_TOKEN=… node tools/check-clients.mjs` then shows any client whose
+   page doesn't match the registry, or is behind the latest release.
 3. Deploy the client repo (its own Vercel project + password gate). Done — it
    inherits the shared look, the theme switcher, and Copy-for-AI automatically.
 
