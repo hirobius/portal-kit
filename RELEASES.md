@@ -17,6 +17,22 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ---
 
+## v4 — 2026-10-05
+- **Tokens come from HDS.** `theme.css` imports `@hirobius/design-system@0.20.0`
+  `variables.css` (jsDelivr) and maps every kit token (surfaces, ink, lines,
+  status, chips, type ramp, radius, spacing, shadow, font) to an HDS semantic or
+  primitive token. Each mapping keeps its v3 value as a fallback, so a page still
+  renders if the CDN is down. Bump the pinned HDS version here to restyle every
+  portal.
+- Visible change: body text 14.7 → 16px (HDS base), HDS 4px spacing grid,
+  neutral palette from HDS (page #fafafa / cards #fff light; #0a0a0a / #111 dark).
+- HDS findings from this pass: (1) HDS flips dark mode only on
+  `[data-theme="dark"]`, not `prefers-color-scheme`, so the kit maps system-dark
+  itself; (2) HDS's mono family (Geist Mono) isn't loaded by `variables.css`,
+  so the kit keeps the system mono stack; (3) HDS's accent tokens are
+  monochrome (neutral-900), while the HDS README describes an electric-blue
+  accent.
+
 ## v3 — 2026-10-04
 - **"Copy page" button** replaces "Copy for AI": compact outlined button with a
   clipboard icon (top + footer), the pattern AI-friendly doc sites use. No AI
