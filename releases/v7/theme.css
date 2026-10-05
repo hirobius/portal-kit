@@ -555,7 +555,7 @@ details.task.collapsible .task-body { padding-top:var(--s1); }
 .task > details > summary::before, .field details > summary::before { content:"+"; font-family:var(--mono);
   font-size:1.1rem; line-height:1; color:var(--muted); width:.8em; text-align:center; }
 .task > details[open] > summary::before, .field details[open] > summary::before { content:"\2013"; }
-.s-open { display:none; } details[open] .s-closed { display:none; } details[open] .s-open { display:inline; }
+.s-open { display:none; } details[open] > summary .s-closed { display:none; } details[open] > summary .s-open { display:inline; }
 ol.steps { margin:var(--s4) 0 0; padding-left:1.3rem; }
 ol.steps li { font-size:var(--fs-body); color:var(--muted); margin:var(--s2) 0; }
 ol.steps li b { color:var(--ink); }
