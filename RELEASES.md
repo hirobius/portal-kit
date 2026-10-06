@@ -17,6 +17,12 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ---
 
+## v14 — 2026-10-06
+- **Calmer spacing.** No rule under the page header (space separates it), and
+  Project Status phase cards stack tighter (12px apart instead of 24px).
+- "Tap to change" label reads "Select to change" (no device wording).
+- Additive: content renders the same.
+
 ## v13 — 2026-10-06
 - **No stacked lines.** `---` in a document is now extra space, not a rule, so
   section breaks never double up with table or heading lines. The Sign block
