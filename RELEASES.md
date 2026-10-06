@@ -17,6 +17,17 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ---
 
+## v9 — 2026-10-06
+Every document prints as a clean US Letter (8.5x11in) page.
+- **Print or save PDF** button under each document's heading in the reader. A
+  document open in the reader prints by itself; the main page prints with every
+  fold opened (restored after).
+- **Print styles:** `@page { size: letter }`, 0.75in margins, 10.5pt body,
+  black-on-white, buttons hidden, tables bordered and kept whole, headings kept
+  with their text, external links show their URL, empty table cells get signing
+  room.
+- Additive: v8 pages render unchanged on screen.
+
 ## v8 — 2026-10-06
 Shorter pages: long sections fold instead of scrolling forever.
 - **Phases fold.** Every `status` phase is a tap-to-open card (chevron right).
