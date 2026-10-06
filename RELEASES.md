@@ -17,6 +17,20 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ---
 
+## v8 — 2026-10-06
+Shorter pages: long sections fold instead of scrolling forever.
+- **Phases fold.** Every `status` phase is a tap-to-open card (chevron right).
+  A finished phase starts closed, still showing "5 of 5 done"; others start
+  open. `"open": true|false` on a phase overrides.
+- **Updates show the newest 2.** Older entries sit under "Older updates (N)".
+  `"show": N` on the section changes the count.
+- **Documents can fold too.** `"show": N` on a `docs` section keeps the first N
+  as cards and puts the rest under "More documents (N)". Default: show all.
+- **Deep links open what they point at.** A `#id` inside a folded phase or list
+  opens every fold around it (on load and on hash change).
+- Copy page still copies everything, folded or not. Additive: v7 pages render
+  under v8, with finished phases and older updates folded.
+
 ## v7 — 2026-10-05
 One framework for every client page: the kit absorbs what clients were hand-rolling.
 - **One checklist pattern.** A `status` item may carry `owner`, `fields[]`,
