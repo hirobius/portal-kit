@@ -17,6 +17,12 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ---
 
+## v13 — 2026-10-06
+- **No stacked lines.** `---` in a document is now extra space, not a rule, so
+  section breaks never double up with table or heading lines. The Sign block
+  drops its top line too.
+- Sign note text shortened (no "on your phone").
+
 ## v12 — 2026-10-06
 - **Pending sign button.** `"signPending": true` on a doc item (with no
   `signUrl` yet) shows the Sign button greyed out at the end of the document,
