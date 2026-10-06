@@ -17,6 +17,12 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ---
 
+## v12 — 2026-10-06
+- **Pending sign button.** `"signPending": true` on a doc item (with no
+  `signUrl` yet) shows the Sign button greyed out at the end of the document,
+  with "Signing link coming soon". Add `signUrl` later and it goes live.
+- Additive: v11 pages render the same.
+
 ## v11 — 2026-10-06
 - **Sign button.** A doc item with `"signUrl": "https://…"` gets a "Review and
   sign" link on its card and a full-width button at the end of the document in
