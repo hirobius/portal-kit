@@ -17,6 +17,13 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ---
 
+## v11 — 2026-10-06
+- **Sign button.** A doc item with `"signUrl": "https://…"` gets a "Review and
+  sign" link on its card and a full-width button at the end of the document in
+  the reader (hidden when printed). `"signLabel"` overrides the text. Built for
+  DocuSeal shared links; any https signing URL works.
+- Additive: pages without `signUrl` render exactly as v10.
+
 ## v10 — 2026-10-06
 - **No sideways slide on phones.** Document tables sit in their own scroll box
   (`.table-scroll`), and the reader only scrolls up and down, so a wide table no
