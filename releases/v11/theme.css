@@ -394,9 +394,9 @@ details.acc .acc-body { margin-top:var(--s3); }
 .md table { width:100%; border-collapse:collapse; margin:0; font-size:var(--fs-label); }
 .md td a { overflow-wrap:anywhere; }
 .sign-block { margin:var(--s6) 0 var(--s4); padding-top:var(--s5); border-top:1px solid var(--line); }
-.sign-btn { display:block; text-align:center; padding:.9em 1.2em; border-radius:var(--r-md); background:var(--ink); color:var(--bg);
+.sign-btn, .md a.sign-btn { display:block; text-align:center; padding:.9em 1.2em; border-radius:var(--r-md); background:var(--ink); color:var(--bg);
   font-weight:700; text-decoration:none; font-size:var(--fs-body); }
-.sign-btn:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
+.md a.sign-btn:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
 .sign-note { margin:var(--s2) 0 0; font-size:var(--fs-label); color:var(--muted); text-align:center; }
 .md del { color:var(--muted); text-decoration-thickness:1px; }
 .md th, .md td { text-align:left; padding:.5em .7em; border-bottom:1px solid var(--line); vertical-align:top; }
