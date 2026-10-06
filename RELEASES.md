@@ -17,6 +17,14 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ---
 
+## v10 — 2026-10-06
+- **No sideways slide on phones.** Document tables sit in their own scroll box
+  (`.table-scroll`), and the reader only scrolls up and down, so a wide table no
+  longer shifts the whole page when touched. Links in table cells wrap.
+- **Strikethrough:** `~~done item~~` renders as struck-through text, for
+  "Already done" lists.
+- Additive: v9 pages render the same, minus the sideways slide.
+
 ## v9 — 2026-10-06
 Every document prints as a clean US Letter (8.5x11in) page.
 - **Print or save PDF** button under each document's heading in the reader. A
