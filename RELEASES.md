@@ -17,6 +17,10 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ---
 
+## v16 — 2026-10-07
+- **Doc card buttons under the text** on every screen size (bottom left),
+  instead of floating to the right on wide screens.
+
 ## v15 — 2026-10-07
 - **Signed state.** `"signedOn": "YYYY-MM-DD"` on a doc item replaces the Sign
   button with a "✓ Signed <date>" pill on the card and a "Signed by both
