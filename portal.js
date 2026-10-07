@@ -13,7 +13,7 @@
  *     "progress": true,                                          // show done-count line
  *     "parties":  [{ "label": "Client", "cls": "a" }, { "label": "Hirobius", "cls": "b" }],
  *     "copyForAI":{ "mode": "generic|payload", "payloadId": "portal-payload",
- *                   "label": "Copy page", "placement": ["top","footer"] },
+ *                   "label": "Copy page", "placement": ["top"] },  // "footer" opt-in
  *     "sections": [ …ordered typed sections, see below… ],
  *     "contact":  { "name": "", "email": "" },
  *     "footer":   legacy { "lines": [...] }, shown only when contact.email is unset
@@ -1220,7 +1220,7 @@
     try { data = JSON.parse(dataEl.textContent); }
     catch (e) { console.error('portal-kit: #portal-data JSON invalid:', e); return; }
 
-    var cfg = data.copyForAI || { mode: 'generic', placement: ['top', 'footer'] };
+    var cfg = data.copyForAI || { mode: 'generic', placement: ['top'] }; // v15: no footer copy by default
     var ctx = { parties: data.parties || [{ label: 'Client', cls: 'a' }, { label: 'Hirobius', cls: 'b' }] };
     if (data.client) { document.title = data.client + (data.titleSuffix || ' — Project Portal'); CHECK_KEY = 'portal-checks:' + data.client; }
 
@@ -1272,7 +1272,7 @@
 
     // Footer
     var footer = el('footer');
-    if ((cfg.placement || ['footer']).indexOf('footer') > -1) footer.appendChild(aiBlock(data, cfg));
+    if ((cfg.placement || []).indexOf('footer') > -1) footer.appendChild(aiBlock(data, cfg));
     var email = data.contact && data.contact.email;
     if (email) {
       var fc = el('p', 'foot-contact'); fc.appendChild(document.createTextNode('Questions? '));

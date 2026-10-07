@@ -22,7 +22,9 @@ page must keep rendering). A breaking change starts a new major (`v2`).
   button with a "✓ Signed <date>" pill on the card and a "Signed by both
   parties" line at the end of the document. Optional `"signedCopyUrl"` (https)
   adds a "View the signed copy" link. `signedOn` wins over `signUrl`/`signPending`.
-- Additive: v14 pages render the same.
+- **No Copy page in the footer** by default. It stays at the top; pages that
+  set `copyForAI.placement` to include `"footer"` still get it there.
+- Otherwise additive: v14 pages render the same.
 
 ## v14 — 2026-10-06
 - **Calmer spacing.** No rule under the page header (space separates it), and
