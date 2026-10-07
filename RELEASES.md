@@ -17,6 +17,13 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ---
 
+## v15 — 2026-10-07
+- **Signed state.** `"signedOn": "YYYY-MM-DD"` on a doc item replaces the Sign
+  button with a "✓ Signed <date>" pill on the card and a "Signed by both
+  parties" line at the end of the document. Optional `"signedCopyUrl"` (https)
+  adds a "View the signed copy" link. `signedOn` wins over `signUrl`/`signPending`.
+- Additive: v14 pages render the same.
+
 ## v14 — 2026-10-06
 - **Calmer spacing.** No rule under the page header (space separates it), and
   Project Status phase cards stack tighter (12px apart instead of 24px).

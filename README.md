@@ -95,7 +95,7 @@ are ≥4 navigable sections). `status` is always `"done" | "in-progress" | "upco
 | `request` | a custom-request box that opens a pre-filled `mailto:` |
 | `updates` | a dated status feed (newest first) |
 | `accordions` | "How We Work Together" — collapsible markdown sections |
-| `docs` | document cards that open in an in-page reader. An item may add `signUrl` (https signing link, e.g. DocuSeal) for a **Review and sign** button on the card and at the end of the document (v11), `signPending: true` to show that button greyed out until the link exists (v12), and `signLabel` to change its text. |
+| `docs` | document cards that open in an in-page reader. An item may add `signUrl` (https signing link, e.g. DocuSeal) for a **Review and sign** button on the card and at the end of the document (v11), `signPending: true` to show that button greyed out until the link exists (v12), `signLabel` to change its text, and `signedOn: "YYYY-MM-DD"` once it's signed (v15): the button is replaced by a "Signed" pill on the card and a done line in the reader, with an optional `signedCopyUrl` link to the signed PDF. |
 
 A task `field` is `{ "k": "Label", "v": "markdown" }`, or `{ "k", "drafts":[…] }`
 for email/message drafts (with `{{tokens}}`), or `{ "k", "list":{ "items":[…] } }`
