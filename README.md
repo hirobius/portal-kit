@@ -86,7 +86,7 @@ are ≥4 navigable sections). `status` is always `"done" | "in-progress" | "upco
 |---|---|
 | `assist` | intro block ("Start here") with a Copy-for-AI CTA button |
 | `callout` | a pulled-out note; `variant:"alert"` adds the amber warning style |
-| `status` | Project Status — phase cards with checklist items. **The one checklist pattern (v7):** an item `{id,label,status,desc}` may add `owner`, `fields[]`, `steps[]`, `bodyId` and then opens on tap. A phase may add `note`. |
+| `status` | Project Status — phase cards with checklist items. **The one checklist pattern (v7):** an item `{id,label,status,desc}` may add `owner`, `fields[]`, `steps[]`, `bodyId` and then opens on tap. A phase may add `note`. Finished phases sit in a "Completed" group at the bottom (v17; `"completedLast": false` on the section to opt out). |
 | `links` | link rows grouped by `section`, written from `links.json` by `tools/sync-links.mjs` |
 | `tasks` | **legacy (use `status`)** — grouped setup task-cards: `subgroups[]`, each a subhead + optional `decisions` cards + `tasks[]`. A task has `id` (code), `title`, `owner` (→ chip), `tags[]`, `fields[]`, `steps[]`, and a To-do/Done toggle |
 | `list` | **legacy (use `status`)** — a bordered list of rows (`name`, `sub`, `status:{label,kind}`, `note`) — used for build status and roadmaps. `kind` is `built` / `wait` / plain |

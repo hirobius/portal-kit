@@ -17,6 +17,12 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ---
 
+## v17 — 2026-10-08
+- **Completed group.** Finished phases in Project Status move to a
+  "Completed" group at the bottom of the section. Opt out per section with
+  `"completedLast": false`.
+- No rule above the footer; larger theme toggle (48px).
+
 ## v16 — 2026-10-07
 - **Doc card buttons under the text** on every screen size (bottom left),
   instead of floating to the right on wide screens.
