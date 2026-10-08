@@ -17,6 +17,10 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ---
 
+## v18 — 2026-10-08
+- **Completed** group uses the same collapsed fold as "Older updates":
+  "Completed (n)", closed by default.
+
 ## v17 — 2026-10-08
 - **Completed group.** Finished phases in Project Status move to a
   "Completed" group at the bottom of the section. Opt out per section with
