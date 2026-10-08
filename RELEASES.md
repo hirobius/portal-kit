@@ -17,6 +17,9 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ---
 
+## v19 — 2026-10-08
+- Larger document close button (48px, bigger ×), matching the theme toggle.
+
 ## v18 — 2026-10-08
 - **Completed** group uses the same collapsed fold as "Older updates":
   "Completed (n)", closed by default.
