@@ -4,15 +4,20 @@
     {
       "client": "Access Tech",
       "repo": "hirobius/access-tech-internal",
-      "pages": ["index.html"],
+      "pages": [
+        "index.html"
+      ],
       "url": "https://access-tech-internal.vercel.app",
-      "release": "v7",
+      "release": "v19",
       "layout": "canonical"
     },
     {
       "client": "Lilac Insurance Group",
       "repo": "hirobius/lilac",
-      "pages": ["index.html", "how-it-works.html"],
+      "pages": [
+        "index.html",
+        "how-it-works.html"
+      ],
       "url": "https://lilac-insure.vercel.app",
       "release": "v7",
       "layout": "canonical"
