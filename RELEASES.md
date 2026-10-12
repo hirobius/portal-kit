@@ -17,6 +17,16 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ---
 
+## v20 — 2026-10-12
+- **Shared password gate.** `tools/gate.mjs` (copied into a site's `scripts/kit/`
+  like the other tools) is the whole login: middleware.js becomes config only
+  (`portalGate({ client, cookie, salt, release, note, variant })`). Same cookie
+  token as the old per-site gates, so switching keeps everyone signed in.
+- **No badge** next to the client name on the login page.
+- Three login looks: `variant: "card"` (default, today's look), `"plain"`
+  (no card, centered), `"split"` (name panel + form; stacks on phones).
+- Pages render the same as v19 (portal.js and theme.css unchanged).
+
 ## v19 — 2026-10-08
 - Larger document close button (48px, bigger ×), matching the theme toggle.
 

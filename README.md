@@ -53,6 +53,11 @@ removes it on load, so it only shows if the kit can't reach the page. See
    page doesn't match the registry, or is behind the latest release.
 3. Deploy the client repo (its own Vercel project + password gate). Done — it
    inherits the shared look, the theme switcher, and Copy-for-AI automatically.
+   The password gate is shared too (v20+): `middleware.js` imports
+   `./scripts/kit/gate.mjs` and passes only config, e.g.
+   `export default portalGate({ client: 'Acme Co', cookie: 'acme_auth', salt: 'acme', release: 'v20' })`
+   with `SITE_PASSWORD` set in the Vercel project. Login looks: `variant`
+   `card` (default) · `plain` · `split`.
 
 ## Data shape
 
