@@ -53,6 +53,12 @@ removes it on load, so it only shows if the kit can't reach the page. See
    page doesn't match the registry, or is behind the latest release.
 3. Deploy the client repo (its own Vercel project + password gate). Done — it
    inherits the shared look, the theme switcher, and Copy-for-AI automatically.
+   The password gate is shared too (v20+): copy the pattern at the top of
+   `tools/gate.mjs` into `middleware.js` (config only; it loads
+   `./scripts/kit/gate.mjs` with `import()` so it works on Edge and Node
+   runtimes), and set `SITE_PASSWORD` in the Vercel project. If the site's
+   `.vercelignore` excludes `scripts/`, re-include `scripts/kit/gate.mjs`.
+   Login looks: `variant` `card` (default) · `plain` · `split`.
 
 ## Data shape
 
