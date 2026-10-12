@@ -3,13 +3,22 @@
 // Copy releases/vN/tools/gate.mjs into the site's scripts/kit/ (same as the
 // other kit tools), then middleware.js is just config:
 //
-//   import { portalGate } from './scripts/kit/gate.mjs';
 //   export const config = { matcher: '/((?!favicon\\.ico|fonts/|_vercel/).*)' };
-//   export default portalGate({
+//   const settings = {
 //     client: 'Acme Co', cookie: 'acme_auth', salt: 'acme', release: 'v20',
 //     note: 'Private project portal. Access is shared directly by Hirobius.', // optional
 //     variant: 'card',                                                           // card | plain | split
-//   });
+//   };
+//   let gate;
+//   export default async function middleware(request) {
+//     gate ||= (await import('./scripts/kit/gate.mjs')).portalGate(settings);
+//     return gate(request);
+//   }
+//
+// Use import(), not a top-level import: on Vercel's Node middleware runtime,
+// middleware.js is compiled to CommonJS and cannot require() this ES module.
+// If the site has a .vercelignore that excludes scripts/, re-include
+// scripts/kit/gate.mjs or the deploy won't have it.
 //
 // The password lives in the SITE_PASSWORD environment variable (Vercel project
 // settings), never in code. Fail-open by design: with no SITE_PASSWORD the gate
