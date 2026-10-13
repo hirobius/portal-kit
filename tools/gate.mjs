@@ -44,7 +44,7 @@ async function sha256(str) {
 const CSS = `
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;background:var(--bg,#f3f3f4);color:var(--ink,#141414);font-family:var(--sans,'Satoshi',system-ui,sans-serif);line-height:1.55;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--bg,#f3f3f4);color:var(--ink,#141414);font-family:var(--sans,'Plus Jakarta Sans',system-ui,sans-serif);line-height:1.55;-webkit-font-smoothing:antialiased}
 .pk-login{min-height:100%;display:grid;place-items:center;padding:24px 16px}
 .pk-login h1{margin:0;font-weight:700;letter-spacing:-.015em;text-wrap:balance}
 .pk-login form{display:grid;gap:12px;margin:0}

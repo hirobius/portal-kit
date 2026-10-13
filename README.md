@@ -8,14 +8,14 @@ reinvention.
 
 ## What's here
 
-- **`theme.css`** — the whole design system: Satoshi type (embedded as a data
+- **`theme.css`** — the whole design system: HDS type (Plus Jakarta Sans and IBM Plex Mono, loaded from the HDS package since v21; v20 and earlier embed Satoshi as a data
   URI so it works cross-origin), neutral palette, status pills, owner chips,
   elevated cards, light/dark, responsive. Edit this to restyle every portal.
 - **`portal.js`** — the shared renderer. It builds the entire page from a
   client's JSON data block, so structure and behavior are shared too.
 - **`index.html`** — a live demo rendering sample data through the kit.
 - **`clients/EXAMPLE-client-page.html`** — copy this to start a new client page.
-- **`fonts/`** — self-hosted Satoshi source (the CSS embeds it; these stay for
+- **`fonts/`** — self-hosted Satoshi source for releases v20 and earlier (they embed it; these stay for
   reference and for pages that link the font directly).
 - **`vercel.json`** — CORS headers for the fonts + a short cache on `theme.css`
   and `portal.js` so edits propagate within ~5 minutes.

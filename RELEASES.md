@@ -17,6 +17,18 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ---
 
+## v21 — 2026-10-13
+- **HDS type, current package.** Imports `@hirobius/design-system@0.24.1`
+  (`variables.css` + `fonts.css`): Plus Jakarta Sans and IBM Plex Mono replace
+  the embedded Satoshi, so `theme.css` drops from ~165 KB to ~50 KB.
+- **HDS weight ramp.** Body 400, labels and buttons 500, titles and bold 700
+  (was 600 nearly everywhere).
+- **Sentence case.** No `text-transform: uppercase` and no caps letter-spacing
+  anywhere (HDS never ships all caps).
+- `tools/gate.mjs` login page falls back to Plus Jakarta Sans.
+- `portal.js` unchanged from v20. Pages render the same structure; type,
+  weights and casing change, so move a client deliberately.
+
 ## v20 — 2026-10-12
 - **Shared password gate.** `tools/gate.mjs` (copied into a site's `scripts/kit/`
   like the other tools) is the whole login: middleware.js becomes config only
