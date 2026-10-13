@@ -21,6 +21,16 @@
       "url": "https://lilac-insure.vercel.app",
       "release": "v7",
       "layout": "canonical"
+    },
+    {
+      "client": "Sterling",
+      "repo": "adr-eng/sterling",
+      "pages": [
+        "index.html"
+      ],
+      "url": "https://sterling-leads.vercel.app",
+      "release": "v21",
+      "layout": "canonical"
     }
   ]
 }
