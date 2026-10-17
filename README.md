@@ -56,7 +56,10 @@ removes it on load, so it only shows if the kit can't reach the page. See
    The password gate is shared too (v20+): copy the pattern at the top of
    `tools/gate.mjs` into `middleware.js` (config only; it loads
    `./scripts/kit/gate.mjs` with `import()` so it works on Edge and Node
-   runtimes), and set `SITE_PASSWORD` in the Vercel project. If the site's
+   runtimes), and set `SITE_PASSWORD` in the Vercel project (Production and
+   Preview; without it a deployed site answers 503, it never goes public).
+   Optional: `SITE_SESSION_SECRET` (random, 32+ chars) signs the login cookie
+   instead of a key derived from the password. If the site's
    `.vercelignore` excludes `scripts/`, re-include `scripts/kit/gate.mjs`.
    Login looks: `variant` `card` (default) · `plain` · `split`.
 
