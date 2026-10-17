@@ -21,11 +21,19 @@
 // scripts/kit/gate.mjs or the deploy won't have it.
 //
 // The password lives in the SITE_PASSWORD environment variable (Vercel project
-// settings), never in code. Fail-open by design: with no SITE_PASSWORD the gate
-// is inert, so adding it can never lock anyone out. The cookie token is
-// sha256(`${salt}:${password}`), the same as the original per-site gates, so
-// switching a site over keeps everyone signed in. Changing the password signs
-// everyone out.
+// settings), never in code. Fails closed: on Vercel (VERCEL_ENV production or
+// preview) with no SITE_PASSWORD, every request gets a 503 saying what to set.
+// Only local runs (no VERCEL_ENV, or "development") skip the gate.
+//
+// The session cookie is `<expiry>.<HMAC-SHA256>`, signed with SITE_SESSION_SECRET
+// if set, else a key derived from SITE_PASSWORD. It expires after `sessionDays`
+// (default 7) and is checked on every request. Changing the password (or the
+// secret) signs everyone out.
+//
+// Guessing: every wrong password waits ~500 ms, and an IP is locked out for
+// 15 minutes after 10 wrong passwords. That counter is per server instance and
+// in memory, so it is best effort; the real limit is a Vercel Firewall
+// rate-limit rule on /__auth.
 //
 // The page links the pinned kit theme.css for fonts and colors; its own layout
 // CSS is inline with fallbacks, so the form still works if the kit host is down.
@@ -36,10 +44,42 @@ const VARIANTS = ["card", "plain", "split"];
 
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
-async function sha256(str) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+const enc = new TextEncoder();
+const hex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+const DAY_S = 86400;
+const MAX_FAILS = 10;
+const LOCK_MS = 15 * 60 * 1000;
+const MAX_TRACKED_IPS = 10000;
+
+async function hmac(keyBytes, data) {
+  const key = await crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return crypto.subtle.sign("HMAC", key, enc.encode(data));
 }
+
+/** Constant-time string compare (length is not secret here). */
+function safeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let d = 0;
+  for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return d === 0;
+}
+
+/** Session signing key. The password is always mixed in so changing it signs everyone out. */
+async function sessionKey(secret, salt, password) {
+  return hmac(enc.encode(secret || password), `portal-kit/gate/session-key/v1\0${salt}\0${password}`);
+}
+
+const sleep = (ms) => (ms > 0 ? new Promise((r) => setTimeout(r, ms)) : Promise.resolve());
+
+const clientIp = (request) =>
+  request.headers.get("x-real-ip") || (request.headers.get("x-forwarded-for") || "").split(",")[0].trim() || "unknown";
+
+const NOT_CONFIGURED = `<!doctype html><html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/><meta name="robots" content="noindex"/>
+<title>Site locked</title></head><body style="font-family:system-ui,sans-serif;max-width:560px;margin:15vh auto;padding:0 16px;line-height:1.55">
+<h1 style="font-size:1.2rem">This site is locked</h1>
+<p>The password is not set, so the site stays closed. Add <code>SITE_PASSWORD</code> in Vercel: Project &rarr; Settings &rarr; Environment Variables (Production and Preview), then redeploy.</p>
+</body></html>`;
 
 const CSS = `
 *{box-sizing:border-box}
@@ -107,26 +147,74 @@ export function loginHtml({ client, release, note, title, variant, error, kitHos
 export function portalGate(opts) {
   const { cookie, salt } = opts;
   const env = opts.env || (() => (typeof process !== "undefined" && process.env) || {});
-  const page = (status, error) =>
-    new Response(loginHtml({ ...opts, error }), { status, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
+  const now = opts.now || Date.now;
+  const maxAge = Math.round((opts.sessionDays ?? 7) * DAY_S);
+  const failDelayMs = opts.failDelayMs ?? 500;
+  const fails = new Map(); // ip -> { count, lockedUntil }
+  const html = (status, body, headers = {}) =>
+    new Response(body, { status, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", ...headers } });
+  const page = (status, error) => html(status, loginHtml({ ...opts, error }));
+
+  async function sign(key, exp) {
+    return hex(await hmac(key, `${salt}:${exp}`));
+  }
+
+  async function validSession(key, jar) {
+    const prefix = `${cookie}=`;
+    for (const part of jar.split(";")) {
+      const c = part.trim();
+      if (!c.startsWith(prefix)) continue;
+      const m = /^(\d{1,12})\.([0-9a-f]{64})$/.exec(c.slice(prefix.length));
+      if (!m || Number(m[1]) * 1000 <= now()) continue;
+      if (safeEqual(await sign(key, m[1]), m[2])) return true;
+    }
+    return false;
+  }
+
+  function recordFail(ip) {
+    const f = fails.get(ip) || { count: 0, lockedUntil: 0 };
+    f.count += 1;
+    if (f.count >= MAX_FAILS) f.lockedUntil = now() + LOCK_MS;
+    fails.delete(ip);
+    fails.set(ip, f);
+    if (fails.size > MAX_TRACKED_IPS) fails.delete(fails.keys().next().value); // drop the oldest
+  }
 
   return async function middleware(request) {
-    const expected = env().SITE_PASSWORD;
-    if (!expected) return; // no password configured -> do not gate
+    const vars = env();
+    const expected = vars.SITE_PASSWORD;
+    if (!expected) {
+      if (vars.VERCEL_ENV === "production" || vars.VERCEL_ENV === "preview") return html(503, NOT_CONFIGURED);
+      return; // local run with no password -> do not gate
+    }
 
-    const token = await sha256(`${salt}:${expected}`);
-    const jar = request.headers.get("cookie") || "";
-    if (jar.split(";").some((c) => c.trim() === `${cookie}=${token}`)) return;
+    const key = await sessionKey(vars.SITE_SESSION_SECRET, salt, expected);
+    if (await validSession(key, request.headers.get("cookie") || "")) return;
 
     const url = new URL(request.url);
     if (request.method === "POST" && url.pathname === "/__auth") {
+      const ip = clientIp(request);
+      const f = fails.get(ip);
+      if (f && f.lockedUntil) {
+        if (f.lockedUntil > now()) {
+          return html(429, "<!doctype html><title>Too many attempts</title><p>Too many attempts. Try again in 15 minutes.</p>", {
+            "Retry-After": String(Math.ceil((f.lockedUntil - now()) / 1000)),
+          });
+        }
+        fails.delete(ip);
+      }
       const password = new URLSearchParams(await request.text()).get("password") || "";
-      if (password === expected) {
+      const [got, want] = await Promise.all([password, expected].map((p) => hmac(key, `pw:${p}`).then(hex)));
+      if (safeEqual(got, want)) {
+        fails.delete(ip);
+        const exp = String(Math.floor(now() / 1000) + maxAge);
         return new Response(null, {
           status: 303,
-          headers: { Location: "/", "Set-Cookie": `${cookie}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=2592000` },
+          headers: { Location: "/", "Set-Cookie": `${cookie}=${exp}.${await sign(key, exp)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}` },
         });
       }
+      recordFail(ip);
+      await sleep(failDelayMs);
       return page(401, true);
     }
     return page(401, false);

@@ -17,6 +17,18 @@ page must keep rendering). A breaking change starts a new major (`v2`).
 
 ---
 
+## Security patch to v20 and v21 gate — 2026-10-17
+`tools/gate.mjs` changed in place in `releases/v20` and `releases/v21` (and the
+root `tools/`). Sites must copy the new file into `scripts/kit/` and redeploy.
+- Login cookie is now signed (HMAC-SHA256) and expires after 7 days
+  (`sessionDays` option). Key: `SITE_SESSION_SECRET` if set, else derived from
+  `SITE_PASSWORD`. **Old cookies stop working: everyone logs in once more.**
+- Wrong passwords wait ~500 ms; an IP is locked out 15 minutes after 10 wrong
+  passwords (best effort, per server instance). Add a Vercel Firewall
+  rate-limit rule on `/__auth` for the real limit.
+- Fails closed: on Vercel production or preview with no `SITE_PASSWORD`, the
+  site answers 503 instead of going public.
+
 ## v21 — 2026-10-13
 - **HDS type, current package.** Imports `@hirobius/design-system@0.24.1`
   (`variables.css` + `fonts.css`): Plus Jakarta Sans and IBM Plex Mono replace
